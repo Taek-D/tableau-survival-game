@@ -42,12 +42,20 @@ export function AuthProvider({ children }) {
   }
 
   const signOut = async () => {
+    if (user?._isGuest) {
+      setUser(null)
+      return { error: null }
+    }
     if (!supabase) return { error: null }
     const { error } = await supabase.auth.signOut()
     return { error }
   }
 
-  const value = { user, loading, signUp, signIn, signOut }
+  const startGuest = () => {
+    setUser({ id: 'guest', email: '체험 모드', _isGuest: true })
+  }
+
+  const value = { user, loading, signUp, signIn, signOut, startGuest }
 
   return (
     <AuthContext.Provider value={value}>

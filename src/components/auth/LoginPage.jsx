@@ -3,7 +3,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { BACKGROUNDS } from '../../data/characters'
 
 export default function LoginPage() {
-  const { signIn, signUp } = useAuth()
+  const { signIn, signUp, startGuest } = useAuth()
   const [isSignUp, setIsSignUp] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -138,6 +138,14 @@ export default function LoginPage() {
                 }
               </button>
             </div>
+
+            {/* Guest mode */}
+            <button
+              onClick={startGuest}
+              className="mt-4 w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-[14px] font-medium text-white/50 transition-all duration-300 hover:bg-white/[0.08] hover:text-white/80 cursor-pointer"
+            >
+              로그인 없이 체험하기
+            </button>
 
             {/* Future OAuth section */}
             <div className="mt-6 pt-5 border-t border-white/[0.06]">
