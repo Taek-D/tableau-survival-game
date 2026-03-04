@@ -187,7 +187,7 @@ export default function RoadmapQuestion({ problem, onComplete }) {
           <div className="flex items-center justify-between px-7 pt-6 pb-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center text-xl border border-accent/20">
-                {EXPRESSION_EMOJI.seoyeon[submitted ? (isCorrect ? 'smile' : 'serious') : 'default']}
+                {EXPRESSION_EMOJI.mentor[submitted ? (isCorrect ? 'smile' : 'serious') : 'default']}
               </div>
               <div>
                 <p className="text-[15px] text-white/90 font-medium leading-snug">

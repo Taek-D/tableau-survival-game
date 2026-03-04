@@ -30,8 +30,8 @@ const initialState = {
   solvedProblems: [],
   correctCount: 0,
   incorrectCount: 0,
-  currentTitle: '수습 PM',
-  unlockedTitles: ['수습 PM'],
+  currentTitle: null,
+  unlockedTitles: [],
   pendingTitleUnlock: [],
   chapterStars: {},
   hints: 5,
@@ -49,6 +49,12 @@ const initialState = {
   cgSeen: [],
   storyIndex: 0,
   bossIntroShown: false,
+  stats: {
+    communication: 10,
+    analysis: 10,
+    product: 10,
+    execution: 10
+  },
 }
 
 export function getLevelFromXP(xp) {
@@ -102,6 +108,13 @@ function getXPRewardFromPayload(payload, fallback) {
     return payload.xpReward
   }
   return fallback
+}
+
+function getStatsRewardFromPayload(payload) {
+  if (payload && typeof payload === 'object' && payload.statsReward) {
+    return payload.statsReward
+  }
+  return null
 }
 
 function buildChapterProgress(state, problemId, isCorrect) {
@@ -203,6 +216,17 @@ function gameReducer(state, action) {
       const levelTitle = _getLevelTitleForState(newLevel, state)
       if (!newTitles.includes(levelTitle)) newTitles.push(levelTitle)
 
+      const statsReward = getStatsRewardFromPayload(action.payload)
+      const newStats = { ...state.stats }
+      if (statsReward) {
+        Object.keys(statsReward).forEach(key => {
+          if (newStats[key] !== undefined) newStats[key] += statsReward[key]
+        })
+      } else {
+        // Default small bump
+        newStats.execution += 1
+      }
+
       return {
         ...baseState,
         xp: newXP,
@@ -211,6 +235,7 @@ function gameReducer(state, action) {
         consecutiveCorrect: newConsecutive,
         maxConsecutiveCorrect: newMaxConsecutive,
         unlockedTitles: newTitles,
+        stats: newStats,
       }
     }
 
@@ -247,16 +272,25 @@ function gameReducer(state, action) {
     }
 
     case 'CHOICE_MADE': {
-      const { affectionChange = 0, xpChange = 0, hintChange = 0 } = action.payload
+      const { affectionChange = 0, xpChange = 0, hintChange = 0, statsChange = null } = action.payload
       const newAffection = Math.max(0, Math.min(100, state.affection + affectionChange))
       const newXP = Math.max(getXPForLevel(state.level), state.xp + xpChange)
       const newHints = Math.max(0, state.hints + hintChange)
+
+      const newStats = { ...state.stats }
+      if (statsChange) {
+        Object.keys(statsChange).forEach(key => {
+          if (newStats[key] !== undefined) newStats[key] = Math.max(0, newStats[key] + statsChange[key])
+        })
+      }
+
       return {
         ...state,
         affection: newAffection,
         xp: newXP,
         level: getLevelFromXP(newXP),
         hints: newHints,
+        stats: newStats,
       }
     }
 

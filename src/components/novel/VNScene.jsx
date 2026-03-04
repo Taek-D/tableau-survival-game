@@ -1,7 +1,8 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import { getRoleBackgrounds } from '../../data/roleRegistry'
 import CharacterSprite from './CharacterSprite'
 import DialogueBox from './DialogueBox'
+import { soundFx } from '../../utils/feedback'
 
 export default function VNScene({
   background = null,
@@ -67,8 +68,8 @@ export default function VNScene({
     getLatestSceneValue,
   ])
 
-  // Get backgrounds from roleRegistry (default to pm)
-  const BACKGROUNDS = useMemo(() => getRoleBackgrounds('pm'), [])
+  // Get backgrounds from roleRegistry
+  const BACKGROUNDS = useMemo(() => getRoleBackgrounds(), [])
   const bgUrl = effectiveBg ? (BACKGROUNDS[effectiveBg] || BACKGROUNDS.office_day) : null
 
   const handleAdvance = useCallback(() => {
@@ -91,7 +92,8 @@ export default function VNScene({
     }
   }, [dialogueIndex, dialogues.length, choices, showChoices, onComplete, showChoiceResponse, choiceSelected, choiceResponseIndex, onChoice])
 
-  const handleChoice = (index) => {
+  const handleChoice = useCallback((index) => {
+    soundFx.click()
     setChoiceSelected(index)
     const choice = choices[index]
     if (choice.response && choice.response.length > 0) {
@@ -101,7 +103,21 @@ export default function VNScene({
     } else {
       if (onChoice) onChoice(index, choice)
     }
-  }
+  }, [choices, onChoice])
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (showChoices && choices) {
+        const num = parseInt(e.key, 10)
+        if (!isNaN(num) && num >= 1 && num <= choices.length) {
+          e.preventDefault()
+          handleChoice(num - 1)
+        }
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [showChoices, choices, handleChoice])
 
   const getDialogueToShow = () => {
     if (showChoiceResponse && choiceSelected !== null) {

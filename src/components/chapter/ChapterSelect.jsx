@@ -9,6 +9,7 @@ import {
 } from '../../hooks/useGameState'
 import { getChapterMeta, getPartMeta, getColleagueCharacter, getRoleBackgrounds } from '../../data/roleRegistry'
 import TitleCollectionModal from '../common/TitleCollectionModal'
+import { soundFx } from '../../utils/feedback'
 
 const SWIPE_THRESHOLD = 46
 
@@ -51,19 +52,24 @@ export default function ChapterSelect() {
   const locked = !sel || sel.id > maxUnlocked
 
   const handleStart = () => {
+    soundFx.click()
     if (locked || !sel) return
     dispatch({ type: 'SELECT_CHAPTER', payload: sel.id })
   }
 
+  const handleStartRef = useRef(handleStart)
+  handleStartRef.current = handleStart
+
   useEffect(() => {
+    const len = chapterMeta.length
     const fn = (e) => {
-      if (e.key === 'ArrowLeft') setIdx((p) => clamp(p - 1, 0, chapterMeta.length - 1))
-      if (e.key === 'ArrowRight') setIdx((p) => clamp(p + 1, 0, chapterMeta.length - 1))
-      if (e.key === 'Enter') handleStart()
+      if (e.key === 'ArrowLeft') setIdx((p) => clamp(p - 1, 0, len - 1))
+      if (e.key === 'ArrowRight') setIdx((p) => clamp(p + 1, 0, len - 1))
+      if (e.key === 'Enter') handleStartRef.current()
     }
     window.addEventListener('keydown', fn)
     return () => window.removeEventListener('keydown', fn)
-  })
+  }, [chapterMeta.length])
 
   if (!sel) return null
 
@@ -116,7 +122,10 @@ export default function ChapterSelect() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             {/* Title button */}
             <button
-              onClick={() => setShowTitles(true)}
+              onClick={() => {
+                soundFx.click()
+                setShowTitles(true)
+              }}
               style={{
                 padding: '6px 12px', borderRadius: '10px', border: '1px solid rgba(255,210,97,0.2)',
                 background: 'rgba(255,210,97,0.08)', color: '#ffd261',
@@ -161,6 +170,7 @@ export default function ChapterSelect() {
             <button
               key={p}
               onClick={() => {
+                soundFx.click()
                 const first = chapterMeta.findIndex((c) => c.part === p)
                 if (first >= 0) setIdx(first)
               }}
@@ -188,7 +198,10 @@ export default function ChapterSelect() {
         >
           {/* Left arrow */}
           <button
-            onClick={() => move(-1)}
+            onClick={() => {
+              soundFx.click()
+              move(-1)
+            }}
             disabled={idx <= 0}
             style={{
               position: 'absolute', left: '8px', top: '50%', transform: 'translateY(-50%)',
@@ -222,6 +235,7 @@ export default function ChapterSelect() {
               <div
                 key={ch.id}
                 onClick={() => {
+                  soundFx.click()
                   if (abs > 0) setIdx(i)
                   else if (!isLocked) handleStart()
                 }}
@@ -360,7 +374,10 @@ export default function ChapterSelect() {
 
           {/* Right arrow */}
           <button
-            onClick={() => move(1)}
+            onClick={() => {
+              soundFx.click()
+              move(1)
+            }}
             disabled={idx >= chapterMeta.length - 1}
             style={{
               position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)',
@@ -386,7 +403,10 @@ export default function ChapterSelect() {
             return (
               <button
                 key={c.id}
-                onClick={() => setIdx(i)}
+                onClick={() => {
+                  soundFx.click()
+                  setIdx(i)
+                }}
                 style={{
                   height: '6px', borderRadius: '99px', border: 'none', cursor: 'pointer', padding: 0,
                   width: active ? '20px' : '6px',

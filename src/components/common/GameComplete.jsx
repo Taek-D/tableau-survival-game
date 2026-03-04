@@ -77,7 +77,7 @@ export default function GameComplete() {
 
   // Total stars
   const totalStars = Object.values(state.chapterStars || {}).reduce((a, b) => a + b, 0)
-  const maxStars = 24 // 8 chapters * 3 stars
+  const maxStars = getMaxChapter(role) * 3
 
   useEffect(() => {
     const t = setTimeout(() => setPhase(1), 100)

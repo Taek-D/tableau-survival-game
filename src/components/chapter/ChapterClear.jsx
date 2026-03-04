@@ -107,7 +107,7 @@ function StarIcon({ filled, delay }) {
       opacity: visible ? 1 : 0,
       transition: 'all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)',
       color: filled ? '#ffd261' : 'rgba(255,255,255,0.12)',
-      filter: filled ? '0 0 12px rgba(255,210,97,0.5)' : 'none',
+      filter: filled ? 'drop-shadow(0 0 12px rgba(255,210,97,0.5))' : 'none',
       textShadow: filled ? '0 0 20px rgba(255,210,97,0.4)' : 'none',
     }}>
       {filled ? '\u2605' : '\u2606'}

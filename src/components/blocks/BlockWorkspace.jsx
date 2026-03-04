@@ -129,7 +129,7 @@ export default function BlockWorkspace({ problem, onComplete }) {
       {/* Boss instruction bar */}
       <div className="flex items-center gap-3 mb-2 px-1">
         <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center text-xl border border-accent/20 shrink-0">
-          {EXPRESSION_EMOJI.seoyeon[submitted ? (isCorrect ? 'smile' : 'serious') : bossReaction.expression]}
+          {EXPRESSION_EMOJI.mentor[submitted ? (isCorrect ? 'smile' : 'serious') : bossReaction.expression]}
         </div>
         <div className="flex-1 bg-[#0f1a2e] rounded-lg px-4 py-2.5 border border-white/[0.06]">
           <span className="text-[14px] text-white/90">{problem.instruction}</span>

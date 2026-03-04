@@ -131,12 +131,21 @@ export default function ChapterFlow() {
   }
 
   // ===== PROBLEMS =====
+  // Guard: skip empty problems phase via effect (not during render)
+  useEffect(() => {
+    if (state.chapterPhase === 'problems') {
+      const problems = chapter?.problems || []
+      if (!problems[state.currentProblemIndex]) {
+        dispatch({ type: 'ADVANCE_CHAPTER_PHASE' })
+      }
+    }
+  }, [state.chapterPhase, state.currentProblemIndex, chapter, dispatch])
+
   if (state.chapterPhase === 'problems') {
     const problems = chapter.problems || []
     const problemId = problems[state.currentProblemIndex]
 
     if (!problemId) {
-      dispatch({ type: 'ADVANCE_CHAPTER_PHASE' })
       return null
     }
 
@@ -184,7 +193,6 @@ export default function ChapterFlow() {
 
     const bossId = chapter.bossChallenge
     if (!bossId) {
-      dispatch({ type: 'ADVANCE_CHAPTER_PHASE' })
       return null
     }
 
@@ -218,11 +226,20 @@ export default function ChapterFlow() {
     )
   }
 
+  // Guard: skip empty boss/event phase via effect
+  useEffect(() => {
+    if (state.chapterPhase === 'boss' && !chapter?.bossChallenge && state.bossIntroShown) {
+      dispatch({ type: 'ADVANCE_CHAPTER_PHASE' })
+    }
+    if (state.chapterPhase === 'event' && !chapter?.event) {
+      dispatch({ type: 'CHAPTER_COMPLETE' })
+    }
+  }, [state.chapterPhase, state.bossIntroShown, chapter, dispatch])
+
   // ===== EVENT =====
   if (state.chapterPhase === 'event') {
     const event = chapter.event
     if (!event) {
-      dispatch({ type: 'CHAPTER_COMPLETE' })
       return null
     }
 

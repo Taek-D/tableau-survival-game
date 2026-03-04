@@ -1,12 +1,17 @@
 import { useGameState, useGameDispatch, clearSavedGame } from '../../hooks/useGameState'
 import { useNavigate } from 'react-router-dom'
+import { getMentorCharacter } from '../../data/roleRegistry'
+import { soundFx } from '../../utils/feedback'
 
 export default function GameOver() {
   const state = useGameState()
   const dispatch = useGameDispatch()
   const navigate = useNavigate()
+  const role = state.playerRole || 'pm'
+  const mentor = getMentorCharacter(role)
 
   const handleRestart = () => {
+    soundFx.click()
     clearSavedGame()
     dispatch({ type: 'RESET' })
     navigate('/')
@@ -29,7 +34,7 @@ export default function GameOver() {
 
         <div className="bg-bg-card/60 rounded-xl border border-white/8 p-5 mb-8 text-left">
           <div className="flex items-center gap-2 mb-2">
-            <span className="text-sm font-bold text-tab-blue">박서연</span>
+            <span className="text-sm font-bold text-tab-blue">{mentor?.name || '멘토'}</span>
             <div className="h-px flex-1 bg-white/5" />
           </div>
           <p className="text-text-secondary text-sm leading-relaxed italic">

@@ -35,4 +35,7 @@ const EXPRESSION_EMOJI = {
   },
 }
 
+// Role-agnostic alias: question components use EXPRESSION_EMOJI.mentor
+EXPRESSION_EMOJI.mentor = EXPRESSION_EMOJI.seoyeon
+
 export { CHARACTER_NAMES, EXPRESSION_EMOJI }

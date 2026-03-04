@@ -1,9 +1,11 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { getRoleCharacters } from '../../data/roleRegistry'
+import { soundFx } from '../../utils/feedback'
 
 export default function DialogueBox({ speaker, text, onAdvance, playerName }) {
   const [displayedText, setDisplayedText] = useState('')
   const [isTyping, setIsTyping] = useState(false)
+  const intervalRef = useRef(null)
 
   const fullText = text.replace(/{playerName}/g, playerName || '')
 
@@ -11,20 +13,28 @@ export default function DialogueBox({ speaker, text, onAdvance, playerName }) {
     setDisplayedText('')
     setIsTyping(true)
     let i = 0
-    const interval = setInterval(() => {
+    intervalRef.current = setInterval(() => {
       i++
       if (i <= fullText.length) {
         setDisplayedText(fullText.slice(0, i))
+        if (i % 2 === 0) soundFx.type()
       } else {
         setIsTyping(false)
-        clearInterval(interval)
+        clearInterval(intervalRef.current)
+        intervalRef.current = null
       }
     }, 25)
-    return () => clearInterval(interval)
+    return () => {
+      clearInterval(intervalRef.current)
+      intervalRef.current = null
+    }
   }, [fullText])
 
   const handleClick = useCallback(() => {
+    soundFx.click()
     if (isTyping) {
+      clearInterval(intervalRef.current)
+      intervalRef.current = null
       setDisplayedText(fullText)
       setIsTyping(false)
       return
@@ -32,9 +42,20 @@ export default function DialogueBox({ speaker, text, onAdvance, playerName }) {
     onAdvance()
   }, [isTyping, fullText, onAdvance])
 
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === ' ' || e.key === 'Enter') {
+        e.preventDefault()
+        handleClick()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [handleClick])
+
   const isNarrator = speaker === 'narrator'
   const isPlayer = speaker === 'player'
-  const CHARACTERS = getRoleCharacters('pm')
+  const CHARACTERS = getRoleCharacters()
   const character = CHARACTERS[speaker]
   const speakerName = isNarrator
     ? ''

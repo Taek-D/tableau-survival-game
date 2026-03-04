@@ -82,7 +82,7 @@ export default function CalcFieldEditor({ problem, onComplete }) {
       {/* Boss instruction */}
       <div className="flex items-center gap-3 mb-3 px-1">
         <div className="w-9 h-9 rounded-full bg-bg-card flex items-center justify-center text-lg shrink-0 border-2 border-accent/30">
-          {EXPRESSION_EMOJI.seoyeon[submitted ? (isCorrect ? 'smile' : 'serious') : 'default']}
+          {EXPRESSION_EMOJI.mentor[submitted ? (isCorrect ? 'smile' : 'serious') : 'default']}
         </div>
         <div className="flex-1 bg-bg-secondary/80 rounded-lg px-4 py-2.5 border border-white/5">
           <span className="text-[13px] text-text-primary whitespace-pre-line">{problem.instruction}</span>
