@@ -1,5 +1,6 @@
-// PM Chapter 1 퀴즈 문제 — 첫 출근, 제품 파악
+// PM 퀴즈 문제 — Chapter 1~2
 export const quizProblems = [
+  // === Chapter 1: 첫 출근, 제품 파악 ===
   {
     id: 'pm_quiz_01',
     type: 'quiz',
@@ -51,5 +52,41 @@ export const quizProblems = [
     ],
     hint: '기능을 만들기 전에 "왜" 만드는지를 먼저 정해야 합니다.',
     explanation: '신규 기능 기획의 첫 단계는 사용자 문제 정의와 가설 수립입니다. 어떤 문제를 해결하려는지 명확히 해야 올바른 방향으로 기획할 수 있으며, 와이어프레임이나 벤치마킹은 이후 단계입니다.',
+  },
+  // === Chapter 2: 유저 리서치 ===
+  {
+    id: 'pm_quiz_04',
+    type: 'quiz',
+    chapter: 2,
+    selectType: 'single',
+    difficulty: 'beginner',
+    question: '유저 인터뷰에서 피해야 할 질문 유형은?',
+    context: '유저 리서치의 기본을 확인합니다.',
+    options: [
+      { id: 'a', text: '특정 기능에 대해 좋은지 나쁜지 직접 물어보는 질문' },
+      { id: 'b', text: '사용자의 과거 경험을 구체적으로 묻는 질문' },
+      { id: 'c', text: '특정 상황에서의 행동을 묻는 질문' },
+      { id: 'd', text: '불편했던 경험을 떠올려보라는 질문' },
+    ],
+    hint: '유도 질문(Leading Question)은 인터뷰의 객관성을 해칩니다.',
+    explanation: '유저 인터뷰에서는 "이 기능 좋죠?"와 같은 유도 질문을 피해야 합니다. 이는 응답자의 답변을 특정 방향으로 편향시킵니다. 대신 과거 경험이나 구체적 상황에 대해 열린 질문을 해야 합니다.',
+  },
+  {
+    id: 'pm_quiz_05',
+    type: 'quiz',
+    chapter: 2,
+    selectType: 'single',
+    difficulty: 'intermediate',
+    isBoss: true,
+    question: '페르소나를 만들 때 가장 중요한 원칙은?',
+    context: '실제 유저 데이터를 기반으로 한 페르소나 설계 역량을 평가합니다.',
+    options: [
+      { id: 'a', text: '가능한 한 많은 인구통계학적 정보를 포함한다' },
+      { id: 'b', text: '실제 리서치 데이터를 기반으로 행동 패턴과 니즈를 반영한다' },
+      { id: 'c', text: '팀원들이 공감할 수 있도록 매력적인 스토리를 만든다' },
+      { id: 'd', text: '경쟁사의 타겟 고객과 차별화되는 특성을 강조한다' },
+    ],
+    hint: '페르소나의 핵심은 "실제 데이터"에 기반한다는 점입니다.',
+    explanation: '페르소나는 반드시 실제 유저 리서치 데이터를 기반으로 만들어야 합니다. 상상이 아닌 실제 사용자의 행동 패턴, 동기, 니즈를 반영해야 팀이 올바른 의사결정을 할 수 있습니다.',
   },
 ]

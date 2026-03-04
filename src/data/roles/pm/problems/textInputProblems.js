@@ -1,5 +1,6 @@
-// PM Chapter 1 텍스트 입력 문제
+// PM 텍스트 입력 문제 — Chapter 1~2
 export const textInputProblems = [
+  // === Chapter 1: 첫 출근, 제품 파악 ===
   {
     id: 'pm_text_01',
     type: 'text_input',
@@ -13,5 +14,20 @@ export const textInputProblems = [
       '우리 제품과의 관련성을 언급해보세요',
     ],
     explanation: '핵심 지표를 명확히 정의하고, 제품 맥락에서의 중요성을 설명할 수 있는 것은 PM의 기본 역량입니다.',
+  },
+  // === Chapter 2: 유저 리서치 ===
+  {
+    id: 'pm_text_02',
+    type: 'text_input',
+    chapter: 2,
+    difficulty: 'beginner',
+    question: '우리 제품(B2C SaaS, 50만 사용자)의 핵심 페르소나를 한 명 설정하고, 그 페르소나의 주요 특성과 니즈를 2-3문장으로 작성해보세요.',
+    context: '도현 팀장이 페르소나 연습을 시켜봅니다. 실제 사용자 데이터를 상상하며 작성해보세요.',
+    prompt: '페르소나의 이름, 직업/역할, 핵심 니즈, 그리고 우리 제품을 사용하는 주요 목적을 포함해주세요.',
+    hints: [
+      '구체적인 인물을 설정해보세요 (예: 30대 마케터)',
+      '그 사람이 우리 서비스에서 무엇을 하려는지 생각해보세요',
+    ],
+    explanation: '좋은 페르소나는 실제 데이터를 기반으로 구체적인 인물상을 만드는 것입니다. 이름, 직업, 행동 패턴, 핵심 니즈가 포함되어야 합니다.',
   },
 ]
