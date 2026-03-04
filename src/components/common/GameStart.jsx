@@ -58,7 +58,7 @@ export default function GameStart() {
           <div className="mb-8 flex items-center gap-3">
             <div className="h-px w-8 bg-white/30" />
             <span className="text-[11px] font-semibold tracking-[0.35em] text-white/50 uppercase">
-              Growlab Interactive
+              직무 체험 시뮬레이션
             </span>
             <div className="h-px w-8 bg-white/30" />
           </div>
@@ -66,7 +66,7 @@ export default function GameStart() {
           {/* Title */}
           <h1 className="relative">
             <span className="block text-6xl font-black tracking-[0.12em] leading-none md:text-8xl bg-gradient-to-b from-white via-white to-white/60 bg-clip-text text-transparent">
-              TABLEAU
+              JOB
             </span>
             <span className="block text-5xl font-black tracking-[0.25em] leading-none mt-2 md:text-7xl md:mt-3 bg-gradient-to-b from-accent via-accent to-accent/50 bg-clip-text text-transparent">
               QUEST
@@ -78,7 +78,7 @@ export default function GameStart() {
 
           {/* Subtitle */}
           <p className="text-base leading-relaxed text-white/60 max-w-sm md:text-lg">
-            실전 프로젝트로 배우는<br />태블로 스토리 RPG
+            PM · 디자이너 · 개발자<br />직무 간접 체험 RPG
           </p>
 
           {/* Buttons */}

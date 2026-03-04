@@ -24,7 +24,7 @@ export default function GaugeBar() {
 
   return (
     <div className="flex items-center gap-2.5">
-      <span className="text-[11px] text-text-dim whitespace-nowrap">호감도</span>
+      <span className="text-[11px] text-text-dim whitespace-nowrap">신뢰도</span>
       <div className="gauge-track w-28">
         <div
           className="gauge-fill"

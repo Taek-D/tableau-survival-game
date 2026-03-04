@@ -63,13 +63,13 @@ export default function LoginPage() {
             <div className="mb-4 flex items-center gap-3 justify-center">
               <div className="h-px w-6 bg-white/30" />
               <span className="text-[10px] font-semibold tracking-[0.35em] text-white/40 uppercase">
-                Growlab Interactive
+                직무 체험 시뮬레이션
               </span>
               <div className="h-px w-6 bg-white/30" />
             </div>
             <h1>
               <span className="block text-4xl font-black tracking-[0.12em] leading-none bg-gradient-to-b from-white via-white to-white/60 bg-clip-text text-transparent">
-                TABLEAU
+                JOB
               </span>
               <span className="block text-3xl font-black tracking-[0.25em] leading-none mt-1 bg-gradient-to-b from-accent via-accent to-accent/50 bg-clip-text text-transparent">
                 QUEST

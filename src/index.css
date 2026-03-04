@@ -116,6 +116,11 @@ body {
   min-height: 100vh;
 }
 
+/* ===== Role Theme Colors ===== */
+[data-role="pm"]        { --color-accent: #5b8df0; }
+[data-role="designer"]  { --color-accent: #b07aa1; }
+[data-role="developer"] { --color-accent: #59a14f; }
+
 /* ===== TABLEAU WORKSPACE ===== */
 .tableau-workspace {
   font-family: var(--font-tab);
