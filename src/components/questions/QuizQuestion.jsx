@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useGameState, useGameDispatch } from '../../hooks/useGameState'
 import { checkQuizAnswer } from '../../utils/quizChecker'
 import { getQuizAnswers } from '../../data/roles/pm/problems/answerLoader'
+import { soundFx, haptics } from '../../utils/feedback'
 
 // 멘토 표정 이모지 (간소화)
 const MENTOR_EMOJI = {
@@ -17,6 +18,7 @@ export default function QuizQuestion({ problem, onComplete }) {
   const [submitted, setSubmitted] = useState(false)
   const [isCorrect, setIsCorrect] = useState(false)
   const [showHint, setShowHint] = useState(false)
+  const [attemptCount, setAttemptCount] = useState(0)
   const correctOptionIds = getQuizAnswers(problem.id)
 
   const handleSelect = (optionId) => {
@@ -41,9 +43,17 @@ export default function QuizQuestion({ problem, onComplete }) {
     setSubmitted(true)
 
     if (correct) {
+      soundFx.success()
+      haptics.success()
       dispatch({ type: 'ANSWER_CORRECT', payload: { problemId: problem.id } })
     } else {
-      dispatch({ type: 'ANSWER_INCORRECT', payload: { problemId: problem.id } })
+      soundFx.error()
+      haptics.error()
+      const newAttempt = attemptCount + 1
+      setAttemptCount(newAttempt)
+      if (newAttempt === 1) {
+        dispatch({ type: 'ANSWER_INCORRECT', payload: { problemId: problem.id } })
+      }
     }
   }
 
@@ -56,6 +66,7 @@ export default function QuizQuestion({ problem, onComplete }) {
     setSubmitted(false)
     setIsCorrect(false)
     setShowHint(true)
+    // attemptCount is intentionally preserved across retries
   }
 
   return (
@@ -78,7 +89,9 @@ export default function QuizQuestion({ problem, onComplete }) {
                   {submitted
                     ? isCorrect
                       ? '정답입니다! 잘했어요.'
-                      : '틀렸습니다. 다시 생각해보세요.'
+                      : attemptCount === 1
+                        ? '한 번 더 도전해보세요!'
+                        : '틀렸습니다. 다시 생각해보세요.'
                     : problem.context || '문제를 풀어보세요.'}
                 </p>
               </div>
@@ -107,7 +120,7 @@ export default function QuizQuestion({ problem, onComplete }) {
               let labelColor = 'text-white/75'
 
               if (submitted) {
-                if (correctOptionIds.includes(option.id)) {
+                if (attemptCount >= 2 && correctOptionIds.includes(option.id)) {
                   cardBg = 'bg-emerald-500/[0.08] border-emerald-400/30'
                   indicatorStyle = 'border-emerald-400 bg-emerald-500 text-white'
                   labelColor = 'text-emerald-300'
@@ -115,7 +128,7 @@ export default function QuizQuestion({ problem, onComplete }) {
                   cardBg = 'bg-red-500/[0.08] border-red-400/30'
                   indicatorStyle = 'border-red-400 bg-red-500 text-white'
                   labelColor = 'text-red-300'
-                } else {
+                } else if (attemptCount >= 2) {
                   cardBg = 'bg-white/[0.01] border-white/[0.03] opacity-30'
                   indicatorStyle = 'border-white/10 text-white/15'
                   labelColor = 'text-white/30'
@@ -136,7 +149,7 @@ export default function QuizQuestion({ problem, onComplete }) {
                   <div className="flex items-center gap-4">
                     <span className={`w-7 h-7 rounded-lg border-2 flex items-center justify-center text-[11px] font-bold shrink-0 transition-all duration-200 ${indicatorStyle}`}>
                       {submitted
-                        ? (correctOptionIds.includes(option.id) ? '✓' : isSelected ? '✗' : '')
+                        ? (attemptCount >= 2 && correctOptionIds.includes(option.id) ? '✓' : isSelected ? '✗' : '')
                         : (isSelected ? '●' : String.fromCharCode(65 + idx))}
                     </span>
                     <span className={`text-[15px] leading-relaxed transition-colors ${labelColor}`}>
@@ -159,12 +172,11 @@ export default function QuizQuestion({ problem, onComplete }) {
           )}
 
           {/* Explanation after submit */}
-          {submitted && (
-            <div className={`mx-7 mb-5 p-5 rounded-xl border ${
-              isCorrect
+          {submitted && (isCorrect || attemptCount >= 2) && (
+            <div className={`mx-7 mb-5 p-5 rounded-xl border ${isCorrect
                 ? 'bg-emerald-500/[0.06] border-emerald-400/20'
                 : 'bg-red-500/[0.06] border-red-400/20'
-            }`}>
+              }`}>
               <p className={`font-bold text-[15px] mb-2 ${isCorrect ? 'text-emerald-400' : 'text-red-400'}`}>
                 {isCorrect ? '정답!' : '오답'}
               </p>
@@ -211,7 +223,7 @@ export default function QuizQuestion({ problem, onComplete }) {
                 </button>
               )}
 
-              {submitted && (
+              {submitted && (isCorrect || attemptCount >= 2) && (
                 <button
                   onClick={handleContinue}
                   className="px-7 py-2.5 bg-accent hover:bg-accent-glow text-white rounded-xl text-[15px] font-semibold cursor-pointer transition-all duration-200 hover:shadow-[0_0_24px_rgba(91,141,240,0.25)]"

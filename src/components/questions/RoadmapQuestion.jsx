@@ -11,6 +11,7 @@ import {
 import { useGameState, useGameDispatch } from '../../hooks/useGameState'
 import { checkRoadmap } from '../../utils/roadmapChecker'
 import { EXPRESSION_EMOJI } from '../story/VisualNovel'
+import { soundFx, haptics } from '../../utils/feedback'
 
 function DraggableItem({ id, label, disabled }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
@@ -20,8 +21,8 @@ function DraggableItem({ id, label, disabled }) {
 
   const style = transform
     ? {
-        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-      }
+      transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+    }
     : undefined
 
   return (
@@ -76,6 +77,7 @@ export default function RoadmapQuestion({ problem, onComplete }) {
   const [submitted, setSubmitted] = useState(false)
   const [result, setResult] = useState(null)
   const [showHint, setShowHint] = useState(false)
+  const [attemptCount, setAttemptCount] = useState(0)
   const [activeId, setActiveId] = useState(null)
 
   const sensors = useSensors(
@@ -133,9 +135,17 @@ export default function RoadmapQuestion({ problem, onComplete }) {
     setSubmitted(true)
 
     if (checkResult.correct) {
+      soundFx.success()
+      haptics.success()
       dispatch({ type: 'ANSWER_CORRECT', payload: { problemId: problem.id } })
     } else {
-      dispatch({ type: 'ANSWER_INCORRECT', payload: { problemId: problem.id } })
+      soundFx.error()
+      haptics.error()
+      const newAttempt = attemptCount + 1
+      setAttemptCount(newAttempt)
+      if (newAttempt === 1) {
+        dispatch({ type: 'ANSWER_INCORRECT', payload: { problemId: problem.id } })
+      }
     }
   }
 
@@ -184,7 +194,9 @@ export default function RoadmapQuestion({ problem, onComplete }) {
                   {submitted
                     ? isCorrect
                       ? '정답입니다! 잘했어요.'
-                      : '틀렸습니다. 다시 생각해보세요.'
+                      : attemptCount === 1
+                        ? '한 번 더 도전해보세요!'
+                        : '틀렸습니다. 다시 생각해보세요.'
                     : problem.context || '기능들을 매트릭스에 배치해보세요.'}
                 </p>
               </div>
@@ -299,16 +311,20 @@ export default function RoadmapQuestion({ problem, onComplete }) {
           )}
 
           {/* Result feedback */}
-          {submitted && result && (
-            <div className={`mx-7 mb-5 p-5 rounded-xl border ${
-              isCorrect
+          {submitted && result && (isCorrect || attemptCount >= 2) && (
+            <div className={`mx-7 mb-5 p-5 rounded-xl border ${isCorrect
                 ? 'bg-emerald-500/[0.06] border-emerald-400/20'
                 : 'bg-red-500/[0.06] border-red-400/20'
-            }`}>
+              }`}>
               <p className={`font-bold text-[15px] mb-2 ${isCorrect ? 'text-emerald-400' : 'text-red-400'}`}>
                 {isCorrect ? '정답!' : `${result.score}/${result.total} 정답`}
               </p>
               <p className="text-[14px] text-white/60 leading-relaxed">{problem.explanation}</p>
+            </div>
+          )}
+          {submitted && !isCorrect && attemptCount === 1 && (
+            <div className="mx-7 mb-5 p-4 rounded-xl border bg-amber-500/[0.06] border-amber-400/20">
+              <p className="text-[14px] text-amber-300 font-medium">한 번 더 도전해보세요!</p>
             </div>
           )}
 
@@ -351,7 +367,7 @@ export default function RoadmapQuestion({ problem, onComplete }) {
                 </button>
               )}
 
-              {submitted && (
+              {submitted && (isCorrect || attemptCount >= 2) && (
                 <button
                   onClick={handleContinue}
                   className="px-7 py-2.5 bg-accent hover:bg-accent-glow text-white rounded-xl text-[15px] font-semibold cursor-pointer transition-all duration-200 hover:shadow-[0_0_24px_rgba(91,141,240,0.25)]"

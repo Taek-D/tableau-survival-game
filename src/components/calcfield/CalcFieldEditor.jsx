@@ -8,6 +8,7 @@ import FieldReference from './FieldReference'
 import FunctionReference from './FunctionReference'
 import { EXPRESSION_EMOJI } from '../story/VisualNovel'
 import { getCalcAnswers } from '../../data/problems/answerLoader'
+import { soundFx, haptics } from '../../utils/feedback'
 // Note: CalcField problems are not used in PM role but adapter returns safe defaults
 
 const tableauEditorTheme = createTheme({
@@ -41,6 +42,7 @@ export default function CalcFieldEditor({ problem, onComplete }) {
   const [isCorrect, setIsCorrect] = useState(false)
   const [feedback, setFeedback] = useState('')
   const [showHint, setShowHint] = useState(false)
+  const [attemptCount, setAttemptCount] = useState(0)
   const [showSample, setShowSample] = useState(false)
   const { correctPatterns, sampleAnswer, partialFeedback } = getCalcAnswers(problem.id)
 
@@ -59,10 +61,18 @@ export default function CalcFieldEditor({ problem, onComplete }) {
     setIsCorrect(result.isCorrect)
     setSubmitted(true)
     if (result.isCorrect) {
+      soundFx.success()
+      haptics.success()
       dispatch({ type: 'ANSWER_CORRECT', payload: { problemId: problem.id } })
       setFeedback('정답입니다!')
     } else {
-      dispatch({ type: 'ANSWER_INCORRECT', payload: { problemId: problem.id } })
+      soundFx.error()
+      haptics.error()
+      const newAttempt = attemptCount + 1
+      setAttemptCount(newAttempt)
+      if (newAttempt === 1) {
+        dispatch({ type: 'ANSWER_INCORRECT', payload: { problemId: problem.id } })
+      }
       setFeedback(getPartialFeedback(formula, partialFeedback) || '다시 확인해보세요.')
     }
   }
@@ -157,11 +167,17 @@ export default function CalcFieldEditor({ problem, onComplete }) {
       )}
 
       {/* Feedback */}
-      {submitted && (
+      {submitted && (isCorrect || attemptCount >= 2) && (
         <div className={`mt-3 p-4 rounded-lg text-sm ${isCorrect ? 'bg-gauge-high/10 border border-gauge-high/30' : 'bg-gauge-low/10 border border-gauge-low/30'}`}>
           <p className="font-semibold mb-1">{isCorrect ? '✅ 정답!' : '❌ 오답'}</p>
           <p className="text-text-secondary mb-1">{feedback}</p>
           <p className="text-text-secondary text-[12px]">{problem.explanation}</p>
+        </div>
+      )}
+      {submitted && !isCorrect && attemptCount === 1 && (
+        <div className="mt-3 p-4 rounded-lg text-sm bg-amber-500/10 border border-amber-400/30">
+          <p className="font-semibold mb-1 text-amber-300">한 번 더 도전해보세요!</p>
+          <p className="text-text-secondary">{feedback}</p>
         </div>
       )}
 
@@ -194,7 +210,7 @@ export default function CalcFieldEditor({ problem, onComplete }) {
             다시 풀기
           </button>
         )}
-        {submitted && (
+        {submitted && (isCorrect || attemptCount >= 2) && (
           <button onClick={() => onComplete(isCorrect)}
             className="px-6 py-2 bg-accent hover:bg-accent-glow text-white rounded-lg font-semibold cursor-pointer transition-colors">
             {isCorrect ? '다음으로' : '넘어가기'}

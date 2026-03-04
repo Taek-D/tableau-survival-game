@@ -7,6 +7,7 @@ import BlockPalette from './BlockPalette'
 import DroppableSlot from './DroppableSlot'
 import ChartPreview from './ChartPreview'
 import { EXPRESSION_EMOJI } from '../story/VisualNovel'
+import { soundFx, haptics } from '../../utils/feedback'
 
 const PILL_BG = {
   dimension: '#6e95be',
@@ -40,6 +41,7 @@ export default function BlockWorkspace({ problem, onComplete }) {
   const [submitted, setSubmitted] = useState(false)
   const [isCorrect, setIsCorrect] = useState(false)
   const [showHint, setShowHint] = useState(false)
+  const [attemptCount, setAttemptCount] = useState(0)
   const [markSize, setMarkSize] = useState(50)
   const [showSizeSlider, setShowSizeSlider] = useState(false)
 
@@ -105,8 +107,19 @@ export default function BlockWorkspace({ problem, onComplete }) {
     const result = checkBlockAnswer(problem, blockState)
     setIsCorrect(result.isCorrect)
     setSubmitted(true)
-    if (result.isCorrect) dispatch({ type: 'ANSWER_CORRECT', payload: { problemId: problem.id } })
-    else dispatch({ type: 'ANSWER_INCORRECT', payload: { problemId: problem.id } })
+    if (result.isCorrect) {
+      soundFx.success()
+      haptics.success()
+      dispatch({ type: 'ANSWER_CORRECT', payload: { problemId: problem.id } })
+    } else {
+      soundFx.error()
+      haptics.error()
+      const newAttempt = attemptCount + 1
+      setAttemptCount(newAttempt)
+      if (newAttempt === 1) {
+        dispatch({ type: 'ANSWER_INCORRECT', payload: { problemId: problem.id } })
+      }
+    }
   }
 
   const getSlot = (id) => problem.slots.find((s) => s.id === id)
@@ -332,12 +345,17 @@ export default function BlockWorkspace({ problem, onComplete }) {
         </div>
       )}
 
-      {submitted && (
+      {submitted && (isCorrect || attemptCount >= 2) && (
         <div className={`mt-3 p-5 rounded-xl border ${isCorrect ? 'bg-emerald-500/[0.06] border-emerald-400/20' : 'bg-red-500/[0.06] border-red-400/20'}`}>
           <p className={`font-bold text-[15px] mb-2 ${isCorrect ? 'text-emerald-400' : 'text-red-400'}`}>
             {isCorrect ? '정답!' : '오답'}
           </p>
           <p className="text-[14px] text-white/60 leading-relaxed">{problem.explanation}</p>
+        </div>
+      )}
+      {submitted && !isCorrect && attemptCount === 1 && (
+        <div className="mt-3 p-4 rounded-xl border bg-amber-500/[0.06] border-amber-400/20">
+          <p className="text-[14px] text-amber-300 font-medium">한 번 더 도전해보세요!</p>
         </div>
       )}
 
@@ -370,7 +388,7 @@ export default function BlockWorkspace({ problem, onComplete }) {
             다시 풀기
           </button>
         )}
-        {submitted && (
+        {submitted && (isCorrect || attemptCount >= 2) && (
           <button onClick={() => onComplete(isCorrect)}
             className="px-7 py-2.5 bg-accent hover:bg-accent-glow text-white rounded-xl text-[15px] font-semibold cursor-pointer transition-all hover:shadow-[0_0_24px_rgba(91,141,240,0.25)]">
             {isCorrect ? '다음으로' : '넘어가기'}
