@@ -1,24 +1,56 @@
 import { useState } from 'react'
 import { useGameDispatch, finalizeNewGameSession } from '../../hooks/useGameState'
-import { CHARACTERS, getPartnerCharacter } from '../../data/characters'
+import { getRoleInfo, getAvailableRoles, getMentorCharacter, getColleagueCharacter } from '../../data/roleRegistry'
+
+const ROLE_CARDS = [
+  {
+    id: 'pm',
+    emoji: '📋',
+    name: '프로덕트 매니저',
+    shortName: 'PM',
+    color: '#5b8df0',
+    desc: '사용자 문제를 정의하고, 제품 전략을 수립하는 PM의 여정',
+  },
+  {
+    id: 'designer',
+    emoji: '🎨',
+    name: '프로덕트 디자이너',
+    shortName: '디자이너',
+    color: '#b07aa1',
+    desc: 'UX 리서치부터 UI 시스템까지, 디자이너의 성장 스토리',
+  },
+  {
+    id: 'developer',
+    emoji: '💻',
+    name: '소프트웨어 개발자',
+    shortName: '개발자',
+    color: '#59a14f',
+    desc: '코드로 세상을 바꾸는 개발자의 첫 발걸음',
+  },
+]
 
 export default function CharacterSetup() {
   const dispatch = useGameDispatch()
   const [name, setName] = useState('')
   const [gender, setGender] = useState(null)
+  const [selectedRole, setSelectedRole] = useState(null)
+
+  const availableRoles = getAvailableRoles()
+  const roleAvailability = Object.fromEntries(availableRoles.map((r) => [r.id, r.available]))
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    if (name.trim() && gender) {
+    if (name.trim() && gender && selectedRole) {
       finalizeNewGameSession()
-      dispatch({ type: 'START_NEW_GAME', payload: { name: name.trim(), gender } })
+      dispatch({ type: 'START_NEW_GAME', payload: { name: name.trim(), gender, role: selectedRole } })
     }
   }
 
-  const partnerId = gender ? getPartnerCharacter(gender) : null
-  const partner = partnerId ? CHARACTERS[partnerId] : null
+  const mentor = selectedRole ? getMentorCharacter(selectedRole) : null
+  const colleague = selectedRole && gender ? getColleagueCharacter(selectedRole, gender) : null
+  const roleInfo = selectedRole ? getRoleInfo(selectedRole) : null
 
-  const ready = name.trim() && gender
+  const ready = name.trim() && gender && selectedRole
 
   return (
     <div style={{
@@ -45,17 +77,18 @@ export default function CharacterSetup() {
         {/* Top accent line */}
         <div style={{
           height: '3px',
-          background: 'linear-gradient(90deg, #5b8df0, #b07aa1, #e8832a)',
+          background: 'linear-gradient(90deg, #5b8df0, #b07aa1, #59a14f)',
         }} />
 
         <div style={{
           display: 'flex', flexDirection: 'row',
-          minHeight: '520px',
+          minHeight: '580px',
         }}>
           {/* Left: Form */}
           <div style={{
             flex: 1, padding: '36px 32px',
             display: 'flex', flexDirection: 'column',
+            overflowY: 'auto',
           }}>
             {/* Title */}
             <div>
@@ -78,11 +111,11 @@ export default function CharacterSetup() {
                 fontSize: '14px', color: 'rgba(255,255,255,0.55)',
                 margin: '8px 0 0', lineHeight: 1.5,
               }}>
-                이름과 성별을 선택하면 파트너가 매칭됩니다.
+                이름, 성별, 직군을 선택하면 모험이 시작됩니다.
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} style={{ marginTop: '28px', display: 'flex', flexDirection: 'column', gap: '24px', flex: 1 }}>
+            <form onSubmit={handleSubmit} style={{ marginTop: '24px', display: 'flex', flexDirection: 'column', gap: '20px', flex: 1 }}>
               {/* Name input */}
               <div>
                 <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'rgba(255,255,255,0.7)', marginBottom: '8px' }}>
@@ -103,8 +136,8 @@ export default function CharacterSetup() {
                     transition: 'border-color 0.3s',
                     boxSizing: 'border-box',
                   }}
-                  onFocus={(e) => e.target.style.borderColor = '#5b8df0'}
-                  onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.12)'}
+                  onFocus={(e) => { e.target.style.borderColor = '#5b8df0' }}
+                  onBlur={(e) => { e.target.style.borderColor = 'rgba(255,255,255,0.12)' }}
                 />
                 <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginTop: '6px' }}>최대 10자</p>
               </div>
@@ -116,8 +149,8 @@ export default function CharacterSetup() {
                 </label>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                   {[
-                    { value: 'male', label: '남성', icon: '♂', partnerId: 'sohee', desc: '정소희와 함께', color: '#5b8df0' },
-                    { value: 'female', label: '여성', icon: '♀', partnerId: 'junhyung', desc: '신준형과 함께', color: '#f05b8d' },
+                    { value: 'male', label: '남성', icon: '\u2642', color: '#5b8df0' },
+                    { value: 'female', label: '여성', icon: '\u2640', color: '#f05b8d' },
                   ].map((opt) => {
                     const sel = gender === opt.value
                     return (
@@ -126,7 +159,7 @@ export default function CharacterSetup() {
                         type="button"
                         onClick={() => setGender(opt.value)}
                         style={{
-                          padding: '16px 14px',
+                          padding: '14px 12px',
                           borderRadius: '14px',
                           border: sel ? `2px solid ${opt.color}` : '2px solid rgba(255,255,255,0.08)',
                           background: sel ? `${opt.color}15` : 'rgba(255,255,255,0.03)',
@@ -136,15 +169,66 @@ export default function CharacterSetup() {
                           boxShadow: sel ? `0 0 20px ${opt.color}22` : 'none',
                         }}
                       >
-                        <div style={{ fontSize: '28px', lineHeight: 1 }}>{opt.icon}</div>
+                        <div style={{ fontSize: '24px', lineHeight: 1 }}>{opt.icon}</div>
                         <p style={{
-                          fontSize: '16px', fontWeight: 700, margin: '8px 0 0',
+                          fontSize: '15px', fontWeight: 700, margin: '6px 0 0',
                           color: sel ? '#fff' : 'rgba(255,255,255,0.7)',
                         }}>{opt.label}</p>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Role selection */}
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'rgba(255,255,255,0.7)', marginBottom: '10px' }}>
+                  직군 선택
+                </label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
+                  {ROLE_CARDS.map((role) => {
+                    const available = roleAvailability[role.id]
+                    const sel = selectedRole === role.id
+                    return (
+                      <button
+                        key={role.id}
+                        type="button"
+                        onClick={() => { if (available) setSelectedRole(role.id) }}
+                        disabled={!available}
+                        style={{
+                          position: 'relative',
+                          padding: '16px 10px 14px',
+                          borderRadius: '14px',
+                          border: sel ? `2px solid ${role.color}` : '2px solid rgba(255,255,255,0.08)',
+                          background: sel ? `${role.color}15` : 'rgba(255,255,255,0.03)',
+                          cursor: available ? 'pointer' : 'not-allowed',
+                          textAlign: 'center',
+                          transition: 'all 0.3s',
+                          boxShadow: sel ? `0 0 20px ${role.color}22` : 'none',
+                          opacity: available ? 1 : 0.5,
+                        }}
+                      >
+                        {!available && (
+                          <div style={{
+                            position: 'absolute', top: '8px', right: '8px',
+                            fontSize: '9px', fontWeight: 700,
+                            padding: '2px 6px', borderRadius: '4px',
+                            background: 'rgba(255,255,255,0.12)',
+                            color: 'rgba(255,255,255,0.5)',
+                          }}>
+                            준비 중
+                          </div>
+                        )}
+                        <div style={{ fontSize: '28px', lineHeight: 1, marginBottom: '6px' }}>{role.emoji}</div>
                         <p style={{
-                          fontSize: '11px', margin: '4px 0 0',
-                          color: sel ? opt.color : 'rgba(255,255,255,0.4)',
-                        }}>{opt.desc}</p>
+                          fontSize: '14px', fontWeight: 700, margin: '0',
+                          color: sel ? '#fff' : 'rgba(255,255,255,0.7)',
+                        }}>{role.shortName}</p>
+                        <p style={{
+                          fontSize: '10px', margin: '4px 0 0',
+                          color: sel ? role.color : 'rgba(255,255,255,0.35)',
+                          lineHeight: 1.3,
+                        }}>{role.desc.slice(0, 25)}...</p>
                       </button>
                     )
                   })}
@@ -157,13 +241,23 @@ export default function CharacterSetup() {
                 background: 'rgba(255,255,255,0.04)',
                 border: '1px solid rgba(255,255,255,0.06)',
               }}>
-                <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', lineHeight: 1.6, margin: 0 }}>
-                  <span style={{ color: '#5b8df0', fontWeight: 600 }}>멘토:</span> 박서연 팀장
-                  <br />
-                  <span style={{ color: '#59a14f', fontWeight: 600 }}>조직:</span> 그로우랩 (GrowLab) 데이터팀
-                  <br />
-                  <span style={{ color: '#e8832a', fontWeight: 600 }}>직무:</span> 수습 데이터 분석가 (20챕터 퀘스트)
-                </p>
+                {mentor ? (
+                  <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', lineHeight: 1.6, margin: 0 }}>
+                    <span style={{ color: roleInfo?.color || '#5b8df0', fontWeight: 600 }}>멘토:</span> {mentor.name} ({mentor.role})
+                    {colleague && (
+                      <>
+                        <br />
+                        <span style={{ color: colleague.color, fontWeight: 600 }}>동료:</span> {colleague.name} ({colleague.role})
+                      </>
+                    )}
+                    <br />
+                    <span style={{ color: '#e8832a', fontWeight: 600 }}>조직:</span> 프로덕트랩 (ProductLab)
+                  </p>
+                ) : (
+                  <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.35)', lineHeight: 1.6, margin: 0 }}>
+                    직군을 선택하면 멘토와 동료가 표시됩니다.
+                  </p>
+                )}
               </div>
 
               {/* Submit */}
@@ -186,12 +280,12 @@ export default function CharacterSetup() {
                   boxShadow: ready ? '0 8px 30px rgba(91,141,240,0.3)' : 'none',
                 }}
               >
-                {ready ? '게임 시작' : '이름과 성별을 선택하세요'}
+                {ready ? '게임 시작' : '이름, 성별, 직군을 선택하세요'}
               </button>
             </form>
           </div>
 
-          {/* Right: Partner preview */}
+          {/* Right: Preview panel */}
           <div style={{
             width: '340px',
             position: 'relative',
@@ -201,23 +295,24 @@ export default function CharacterSetup() {
             display: 'flex',
             flexDirection: 'column',
           }}>
-            {partner ? (
+            {mentor ? (
               <>
                 <img
-                  src={partner.expressions.default}
-                  alt={partner.name}
+                  src={mentor.expressions.default}
+                  alt={mentor.name}
                   style={{
                     width: '100%', height: '100%',
                     objectFit: 'cover', objectPosition: 'top center',
                     display: 'block',
                   }}
+                  onError={(e) => { e.target.style.display = 'none' }}
                 />
                 {/* Gradient overlay */}
                 <div style={{
                   position: 'absolute', inset: 0,
                   background: 'linear-gradient(to top, rgba(8,14,26,0.95) 0%, rgba(8,14,26,0.3) 30%, transparent 60%)',
                 }} />
-                {/* Partner info */}
+                {/* Mentor info */}
                 <div style={{
                   position: 'absolute', bottom: 0, left: 0, right: 0,
                   padding: '20px',
@@ -227,19 +322,17 @@ export default function CharacterSetup() {
                     color: 'rgba(255,255,255,0.5)',
                     letterSpacing: '0.15em',
                     textTransform: 'uppercase',
-                  }}>Partner</p>
+                  }}>Mentor</p>
                   <p style={{
                     fontSize: '22px', fontWeight: 800,
-                    color: partner.nameColor,
+                    color: mentor.nameColor,
                     margin: '4px 0 0',
-                  }}>{partner.name}</p>
+                  }}>{mentor.name}</p>
                   <p style={{
                     fontSize: '13px', color: 'rgba(255,255,255,0.6)',
                     margin: '4px 0 0', lineHeight: 1.5,
                   }}>
-                    {partnerId === 'sohee'
-                      ? '밝고 사근사근한 동기. 학습을 도와주는 따뜻한 파트너.'
-                      : '쿨하고 실력 있는 동기. 실전 감각을 끌어올려주는 파트너.'}
+                    {mentor.role}. 당신의 성장을 이끌어줄 멘토.
                   </p>
                 </div>
               </>
@@ -262,9 +355,9 @@ export default function CharacterSetup() {
                   color: 'rgba(255,255,255,0.4)',
                   textAlign: 'center',
                 }}>
-                  성별을 선택하면
+                  직군을 선택하면
                   <br />
-                  파트너가 표시됩니다
+                  멘토가 표시됩니다
                 </p>
               </div>
             )}
