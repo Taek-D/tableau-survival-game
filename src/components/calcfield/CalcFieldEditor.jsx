@@ -11,7 +11,7 @@ import { getCalcAnswers } from '../../data/problems/answerLoader'
 import { soundFx, haptics } from '../../utils/feedback'
 // Note: CalcField problems are not used in PM role but adapter returns safe defaults
 
-const tableauEditorTheme = createTheme({
+const editorTheme = createTheme({
   theme: 'dark',
   settings: {
     background: '#1a2332',
@@ -89,8 +89,8 @@ export default function CalcFieldEditor({ problem, onComplete }) {
         </div>
       </div>
 
-      {/* Tableau-style editor workspace */}
-      <div className="tableau-workspace rounded overflow-hidden border border-tab-toolbar-border shadow-lg bg-tab-bg">
+      {/* Editor workspace */}
+      <div className="tool-workspace rounded overflow-hidden border border-tab-toolbar-border shadow-lg bg-tab-bg">
         {/* Toolbar */}
         <div className="h-7 bg-tab-toolbar border-b border-tab-toolbar-border flex items-center px-3">
           <span className="text-[12px] font-bold text-tab-text">계산된 필드</span>
@@ -107,7 +107,7 @@ export default function CalcFieldEditor({ problem, onComplete }) {
                 value={formula}
                 height="100%"
                 onChange={handleChange}
-                theme={tableauEditorTheme}
+                theme={editorTheme}
                 basicSetup={{
                   lineNumbers: true,
                   foldGutter: false,

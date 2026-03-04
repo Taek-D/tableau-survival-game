@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-  /* Tableau Desktop Authentic Colors (from screenshot) */
+  /* Desktop Tool UI Colors */
   --color-tab-blue: #4e79a7;
   --color-tab-green: #59a14f;
   --color-tab-purple: #b07aa1;
@@ -9,7 +9,7 @@
   --color-tab-red: #e15759;
   --color-tab-teal: #76b7b2;
 
-  /* Tableau workspace surfaces - matched from screenshot */
+  /* Workspace surfaces */
   --color-tab-bg: #e8e8e8;
   --color-tab-surface: #ffffff;
   --color-tab-shelf: #f5f5f5;
@@ -121,12 +121,12 @@ body {
 [data-role="designer"]  { --color-accent: #b07aa1; }
 [data-role="developer"] { --color-accent: #59a14f; }
 
-/* ===== TABLEAU WORKSPACE ===== */
-.tableau-workspace {
+/* ===== TOOL WORKSPACE ===== */
+.tool-workspace {
   font-family: var(--font-tab);
 }
 
-/* Data pane field item (like real Tableau - text row, not pill) */
+/* Data pane field item (text row, not pill) */
 .tab-field-item {
   display: flex;
   align-items: center;
@@ -153,7 +153,7 @@ body {
   color: white;
 }
 
-/* Tableau pill (in shelves after dropping) */
+/* Drag pill (in shelves after dropping) */
 .tab-pill {
   display: inline-flex;
   align-items: center;
@@ -207,7 +207,7 @@ body {
   pointer-events: none;
 }
 
-/* Tableau shelf (열/행) */
+/* Shelf (열/행) */
 .tab-shelf {
   min-height: 24px;
   padding: 2px 4px;
@@ -351,10 +351,10 @@ body {
 ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
 
-.tableau-workspace ::-webkit-scrollbar { width: 8px; height: 8px; }
-.tableau-workspace ::-webkit-scrollbar-track { background: var(--color-tab-toolbar); }
-.tableau-workspace ::-webkit-scrollbar-thumb { background: #c0c0c0; border-radius: 0; border: 1px solid var(--color-tab-toolbar); }
-.tableau-workspace ::-webkit-scrollbar-thumb:hover { background: #a0a0a0; }
+.tool-workspace ::-webkit-scrollbar { width: 8px; height: 8px; }
+.tool-workspace ::-webkit-scrollbar-track { background: var(--color-tab-toolbar); }
+.tool-workspace ::-webkit-scrollbar-thumb { background: #c0c0c0; border-radius: 0; border: 1px solid var(--color-tab-toolbar); }
+.tool-workspace ::-webkit-scrollbar-thumb:hover { background: #a0a0a0; }
 
 /* ===== VISUAL NOVEL ENGINE ===== */
 .vn-container {

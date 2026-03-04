@@ -48,7 +48,7 @@ export default function DroppableSlot({ slot, filledBlock, onRemove, isInvalidDr
     )
   }
 
-  // ===== Card layout — 직사각형 마크 속성 버튼 (태블로 스타일) =====
+  // ===== Card layout — 직사각형 마크 속성 버튼 =====
   if (layout === 'card') {
     const iconColor = slot.iconColor || '#666'
     const hasFill = !!filledBlock
