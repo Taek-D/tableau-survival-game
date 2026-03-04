@@ -192,8 +192,43 @@ export function getRoleInfo(role = 'pm') {
 export function getAvailableRoles() {
   return [
     { id: 'pm', available: true },
-    // 향후 추가될 역할
-    // { id: 'data_analyst', available: false },
-    // { id: 'designer', available: false },
+    { id: 'designer', available: false },
+    { id: 'developer', available: false },
   ]
+}
+
+/**
+ * 캐릭터 ID로 캐릭터 데이터 조회 (VN 시스템용)
+ * @param {string} characterId - 'mentor_pm', 'colleague_f', 'colleague_m' 등
+ * @param {string} role
+ * @returns {object|null}
+ */
+export function getCharacterById(characterId, role = 'pm') {
+  const charMap = characterMapByRole[role]
+  if (!charMap) return null
+  return charMap[characterId] || null
+}
+
+/**
+ * 캐릭터 이름 조회
+ * @param {string} characterId
+ * @param {string} role
+ * @returns {string}
+ */
+export function getCharacterName(characterId, role = 'pm') {
+  const char = getCharacterById(characterId, role)
+  return char?.name || characterId
+}
+
+/**
+ * 캐릭터 이미지 조회
+ * @param {string} characterId
+ * @param {string} expression
+ * @param {string} role
+ * @returns {string|null}
+ */
+export function getCharacterImage(characterId, expression = 'default', role = 'pm') {
+  const char = getCharacterById(characterId, role)
+  if (!char?.expressions) return null
+  return char.expressions[expression] || char.expressions.default || null
 }

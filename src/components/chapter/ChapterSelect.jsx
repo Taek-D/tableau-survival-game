@@ -2,12 +2,12 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   useGameState,
   useGameDispatch,
-  getLevelTitle,
   getXPForLevel,
   getXPForNextLevel,
+  getTrustLabel,
+  getAffectionStage,
 } from '../../hooks/useGameState'
-import { CHAPTER_META, PART_META } from '../../data/chapters/index'
-import { BACKGROUNDS, getCharacterName, getPartnerCharacter } from '../../data/characters'
+import { getChapterMeta, getPartMeta, getColleagueCharacter, getRoleBackgrounds } from '../../data/roleRegistry'
 import TitleCollectionModal from '../common/TitleCollectionModal'
 
 const SWIPE_THRESHOLD = 46
@@ -30,11 +30,15 @@ const PART_COLORS = {
 export default function ChapterSelect() {
   const state = useGameState()
   const dispatch = useGameDispatch()
+  const role = state.playerRole || 'pm'
+  const chapterMeta = useMemo(() => getChapterMeta(role), [role])
+  const partMeta = useMemo(() => getPartMeta(role), [role])
+  const backgrounds = useMemo(() => getRoleBackgrounds(role), [role])
   const maxUnlocked = state.maxUnlockedChapter || 1
 
   const initialIndex = useMemo(
-    () => clamp(CHAPTER_META.findIndex((c) => c.id === state.currentChapter), 0, CHAPTER_META.length - 1),
-    [state.currentChapter],
+    () => clamp(chapterMeta.findIndex((c) => c.id === state.currentChapter), 0, Math.max(0, chapterMeta.length - 1)),
+    [state.currentChapter, chapterMeta],
   )
 
   const [idx, setIdx] = useState(initialIndex)
@@ -43,34 +47,39 @@ export default function ChapterSelect() {
 
   useEffect(() => { setIdx(initialIndex) }, [initialIndex])
 
+  const sel = chapterMeta[idx] || chapterMeta[0]
+  const locked = !sel || sel.id > maxUnlocked
+
+  const handleStart = () => {
+    if (locked || !sel) return
+    dispatch({ type: 'SELECT_CHAPTER', payload: sel.id })
+  }
+
   useEffect(() => {
     const fn = (e) => {
-      if (e.key === 'ArrowLeft') setIdx((p) => clamp(p - 1, 0, CHAPTER_META.length - 1))
-      if (e.key === 'ArrowRight') setIdx((p) => clamp(p + 1, 0, CHAPTER_META.length - 1))
+      if (e.key === 'ArrowLeft') setIdx((p) => clamp(p - 1, 0, chapterMeta.length - 1))
+      if (e.key === 'ArrowRight') setIdx((p) => clamp(p + 1, 0, chapterMeta.length - 1))
       if (e.key === 'Enter') handleStart()
     }
     window.addEventListener('keydown', fn)
     return () => window.removeEventListener('keydown', fn)
-  }, [idx])
+  })
 
-  const sel = CHAPTER_META[idx] || CHAPTER_META[0]
-  const locked = sel.id > maxUnlocked
-  const color = PART_COLORS[sel.part] || PART_COLORS[1]
+  if (!sel) return null
 
   const currentLevelXP = getXPForLevel(state.level)
   const nextLevelXP = getXPForNextLevel(state.level)
-  const levelTitle = getLevelTitle(state.level)
   const xpPct = nextLevelXP > currentLevelXP
     ? ((state.xp - currentLevelXP) / (nextLevelXP - currentLevelXP)) * 100
     : 100
-  const partnerName = getCharacterName(getPartnerCharacter(state.playerGender))
+  const colleague = getColleagueCharacter(role, state.playerGender)
+  const colleagueName = colleague?.name || ''
+  const trustLabel = getTrustLabel(getAffectionStage(state.affection))
 
-  const move = (step) => setIdx((p) => clamp(p + step, 0, CHAPTER_META.length - 1))
+  // Unique part numbers from chapter meta
+  const partNumbers = useMemo(() => [...new Set(chapterMeta.map((c) => c.part))].sort(), [chapterMeta])
 
-  const handleStart = () => {
-    if (locked) return
-    dispatch({ type: 'SELECT_CHAPTER', payload: sel.id })
-  }
+  const move = (step) => setIdx((p) => clamp(p + step, 0, chapterMeta.length - 1))
 
   return (
     <div style={{
@@ -81,7 +90,7 @@ export default function ChapterSelect() {
       {/* BG */}
       <div style={{
         position: 'absolute', inset: 0,
-        backgroundImage: `url(${BACKGROUNDS.office_night})`,
+        backgroundImage: backgrounds.office_night ? `url(${backgrounds.office_night})` : 'none',
         backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.2,
       }} />
       <div style={{
@@ -128,7 +137,7 @@ export default function ChapterSelect() {
             </button>
             <div style={{ textAlign: 'right' }}>
               <p style={{ fontSize: '12px', fontWeight: 600, color: 'rgba(255,255,255,0.7)', margin: 0 }}>Lv.{state.level} {state.currentTitle}</p>
-              <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.45)', margin: '2px 0 0' }}>{partnerName} 호감도 {state.affection}</p>
+              <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.45)', margin: '2px 0 0' }}>{colleagueName} {trustLabel} {state.affection}</p>
             </div>
           </div>
         </div>
@@ -148,11 +157,11 @@ export default function ChapterSelect() {
 
         {/* Part tabs */}
         <div style={{ display: 'flex', justifyContent: 'center', gap: '6px', marginTop: '16px' }}>
-          {[1, 2, 3, 4].map((p) => (
+          {partNumbers.map((p) => (
             <button
               key={p}
               onClick={() => {
-                const first = CHAPTER_META.findIndex((c) => c.part === p)
+                const first = chapterMeta.findIndex((c) => c.part === p)
                 if (first >= 0) setIdx(first)
               }}
               style={{
@@ -163,7 +172,7 @@ export default function ChapterSelect() {
                 transition: 'all 0.3s',
               }}
             >
-              {PART_META[p]?.label || `Part ${p}`}
+              {partMeta[p]?.label || `Part ${p}`}
             </button>
           ))}
         </div>
@@ -196,7 +205,7 @@ export default function ChapterSelect() {
           </button>
 
           {/* Cards */}
-          {CHAPTER_META.map((ch, i) => {
+          {chapterMeta.map((ch, i) => {
             const offset = i - idx
             if (Math.abs(offset) > 2) return null
 
@@ -274,7 +283,7 @@ export default function ChapterSelect() {
                       fontSize: '10px', fontWeight: 700, padding: '4px 10px',
                       borderRadius: '99px', background: `${pc.accent}33`, color: pc.accent,
                     }}>
-                      {PART_META[ch.part]?.name || `Part ${ch.part}`}
+                      {partMeta[ch.part]?.name || `Part ${ch.part}`}
                     </span>
                   </div>
 
@@ -352,14 +361,14 @@ export default function ChapterSelect() {
           {/* Right arrow */}
           <button
             onClick={() => move(1)}
-            disabled={idx >= CHAPTER_META.length - 1}
+            disabled={idx >= chapterMeta.length - 1}
             style={{
               position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)',
               zIndex: 40, width: '40px', height: '40px', borderRadius: '50%',
               border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(10,22,48,0.8)',
               color: 'rgba(255,255,255,0.8)', cursor: 'pointer', display: 'flex',
               alignItems: 'center', justifyContent: 'center',
-              opacity: idx >= CHAPTER_META.length - 1 ? 0.2 : 1,
+              opacity: idx >= chapterMeta.length - 1 ? 0.2 : 1,
             }}
           >
             <svg viewBox="0 0 24 24" fill="none" style={{ width: '20px', height: '20px' }}>
@@ -370,7 +379,7 @@ export default function ChapterSelect() {
 
         {/* Chapter dots */}
         <div style={{ display: 'flex', justifyContent: 'center', gap: '4px', paddingTop: '8px' }}>
-          {CHAPTER_META.map((c, i) => {
+          {chapterMeta.map((c, i) => {
             const active = i === idx
             const cleared = (state.chapterStars[c.id] || 0) > 0
             const lk = c.id > maxUnlocked

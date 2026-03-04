@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react'
 import {
   useGameState, useGameDispatch, clearSavedGame,
-  getLevelTitle, getAffectionStage, getAffectionLabel,
+  getAffectionStage, getTrustLabel,
 } from '../../hooks/useGameState'
 import { useNavigate } from 'react-router-dom'
-import { getPartnerCharacter, getCharacterName, getCharacterImage, BACKGROUNDS } from '../../data/characters'
+import {
+  getColleagueCharacter, getCharacterImage, getMentorCharacter,
+  getRoleBackgrounds,
+} from '../../data/roleRegistry'
 
 const GRADE_CONFIG = {
   S: { text: '#ffd261', bg: 'rgba(255,210,97,0.12)', border: 'rgba(255,210,97,0.3)', glow: 'rgba(255,210,97,0.3)' },
@@ -13,39 +16,39 @@ const GRADE_CONFIG = {
   C: { text: '#8899b0', bg: 'rgba(136,153,176,0.12)', border: 'rgba(136,153,176,0.3)', glow: 'rgba(136,153,176,0.15)' },
 }
 
-function getEnding(state, partnerName) {
+function getEnding(state, mentorName, colleagueName) {
   if (state.level >= 9 && state.affection >= 80) {
     return {
-      title: '태블로 마스터 & 해피엔딩',
+      title: 'CPO의 자질 & 해피엔딩',
       grade: 'S',
-      message: `"${state.playerName}... 솔직히 이렇게 빠르게 성장할 줄 몰랐어요. 앞으로도 함께 일하고 싶어요."`,
-      speaker: partnerName,
-      epilogue: '수습을 마치고 정식 시니어 분석가가 됐다. 그리고, 더 중요한 것도 얻었다.',
+      message: `"${state.playerName}... 이렇게 빠르게 성장할 줄 몰랐어요. 앞으로도 함께 제품을 만들어가요."`,
+      speaker: colleagueName,
+      epilogue: '수습을 마치고 핵심 PM이 됐다. 그리고, 함께 성장할 동료도 얻었다.',
     }
   }
   if (state.level >= 7) {
     return {
-      title: '시니어 분석가 달성',
+      title: '시니어 PM 달성',
       grade: 'A',
       message: `"${state.playerName}님, 수고했어요. 우리 팀에 있어줘서 다행이에요."`,
-      speaker: '박서연',
-      epilogue: '수습 기간을 통과하고 시니어 분석가로 성장했다. 아직 갈 길이 있지만, 방향이 보인다.',
+      speaker: mentorName,
+      epilogue: '수습 기간을 통과하고 시니어 PM으로 성장했다. 아직 갈 길이 있지만, 방향이 보인다.',
     }
   }
   if (state.level >= 4) {
     return {
-      title: '분석가의 길',
+      title: 'PM의 길',
       grade: 'B',
       message: '"아직 갈 길이 멀지만, 충분히 성장했어요. 계속 이 방향으로 가요."',
-      speaker: '박서연',
+      speaker: mentorName,
       epilogue: '성장했다. 처음보다 훨씬. 다음엔 더 잘할 수 있을 것 같다.',
     }
   }
   return {
     title: '수습 통과',
     grade: 'C',
-    message: '"조금 더 노력하면 좋은 분석가가 될 거예요. 포기하지 마요."',
-    speaker: '박서연',
+    message: '"조금 더 노력하면 좋은 PM이 될 거예요. 포기하지 마요."',
+    speaker: mentorName,
     epilogue: '수습은 통과했다. 아직 배울 것이 많다는 걸 알게 됐다.',
   }
 }
@@ -56,12 +59,16 @@ export default function GameComplete() {
   const navigate = useNavigate()
   const [phase, setPhase] = useState(0) // 0 = loading, 1 = showing
 
-  const partnerId = getPartnerCharacter(state.playerGender)
-  const partnerName = getCharacterName(partnerId)
-  const partnerImg = getCharacterImage(partnerId, 'default')
+  const role = state.playerRole || 'pm'
+  const backgrounds = getRoleBackgrounds(role)
+  const colleague = getColleagueCharacter(role, state.playerGender)
+  const colleagueName = colleague?.name || ''
+  const colleagueImg = colleague ? getCharacterImage(colleague.id, 'default', role) : null
+  const mentor = getMentorCharacter(role)
+  const mentorName = mentor?.name || ''
   const affectionStage = getAffectionStage(state.affection)
-  const affectionLabel = getAffectionLabel(affectionStage)
-  const ending = getEnding(state, partnerName)
+  const trustLabel = getTrustLabel(affectionStage)
+  const ending = getEnding(state, mentorName, colleagueName)
   const cfg = GRADE_CONFIG[ending.grade]
 
   const accuracy = (state.correctCount + state.incorrectCount) > 0
@@ -70,7 +77,7 @@ export default function GameComplete() {
 
   // Total stars
   const totalStars = Object.values(state.chapterStars || {}).reduce((a, b) => a + b, 0)
-  const maxStars = 60
+  const maxStars = 24 // 8 chapters * 3 stars
 
   useEffect(() => {
     const t = setTimeout(() => setPhase(1), 100)
@@ -93,18 +100,18 @@ export default function GameComplete() {
       {/* Ending credits background */}
       <div style={{
         position: 'absolute', inset: 0,
-        backgroundImage: `url(${BACKGROUNDS.ending_credits})`,
+        backgroundImage: backgrounds.launch_party ? `url(${backgrounds.launch_party})` : 'none',
         backgroundSize: 'cover', backgroundPosition: 'center',
         opacity: phase === 1 ? 0.18 : 0,
         transition: 'opacity 2s ease 0.3s',
       }} />
 
-      {/* Partner background image */}
-      {affectionStage >= 4 && partnerImg && (
+      {/* Colleague background image */}
+      {affectionStage >= 4 && colleagueImg && (
         <div style={{
           position: 'absolute', right: 0, top: 0, bottom: 0,
           width: '45%',
-          backgroundImage: `url(${partnerImg})`,
+          backgroundImage: `url(${colleagueImg})`,
           backgroundSize: 'cover', backgroundPosition: 'top center',
           opacity: phase === 1 ? 0.25 : 0,
           transition: 'opacity 1.5s ease 0.5s',
@@ -181,7 +188,7 @@ export default function GameComplete() {
             </p>
           </div>
 
-          {/* Level & Affection badges */}
+          {/* Level & Trust badges */}
           <div style={{
             display: 'flex', gap: '8px', flexWrap: 'wrap',
             marginBottom: '20px',
@@ -200,7 +207,7 @@ export default function GameComplete() {
               border: '1px solid rgba(240,91,141,0.2)',
               fontSize: '13px', fontWeight: 600, color: '#f05b8d',
             }}>
-              {partnerName} {affectionLabel}
+              {colleagueName} {trustLabel}
             </span>
           </div>
 

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { CHARACTERS } from '../../data/characters'
+import { getRoleCharacters } from '../../data/roleRegistry'
 
 export default function DialogueBox({ speaker, text, onAdvance, playerName }) {
   const [displayedText, setDisplayedText] = useState('')
@@ -34,6 +34,7 @@ export default function DialogueBox({ speaker, text, onAdvance, playerName }) {
 
   const isNarrator = speaker === 'narrator'
   const isPlayer = speaker === 'player'
+  const CHARACTERS = getRoleCharacters('pm')
   const character = CHARACTERS[speaker]
   const speakerName = isNarrator
     ? ''

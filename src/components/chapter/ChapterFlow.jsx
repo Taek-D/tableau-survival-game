@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useGameState, useGameDispatch } from '../../hooks/useGameState'
-import { getChapter } from '../../data/chapters/index'
-import { getPartnerCharacter } from '../../data/characters'
+import { getChapter, getColleagueCharacter } from '../../data/roleRegistry'
 import VNScene from '../novel/VNScene'
 import QuestionRouter from '../questions/QuestionRouter'
 import TransitionScene from '../common/TransitionScene'
@@ -12,19 +11,20 @@ export default function ChapterFlow() {
   const state = useGameState()
   const dispatch = useGameDispatch()
   const [showTransition, setShowTransition] = useState(true)
-  const [showPartnerGreeting, setShowPartnerGreeting] = useState(false)
+  const [showColleagueGreeting, setShowColleagueGreeting] = useState(false)
   const [pendingCG, setPendingCG] = useState(null)
   const [eventPhase, setEventPhase] = useState('intro') // intro → select → response
   const [selectedChoice, setSelectedChoice] = useState(null)
 
-  const chapter = getChapter(state.currentChapter)
-  const genderKey = state.playerGender
-  const partnerId = getPartnerCharacter(state.playerGender)
+  const role = state.playerRole || 'pm'
+  const chapter = getChapter(state.currentChapter, role)
+  const colleague = getColleagueCharacter(role, state.playerGender)
+  const colleagueId = colleague?.id || null
 
   // Show transition on chapter change
   useEffect(() => {
     setShowTransition(true)
-    setShowPartnerGreeting(false)
+    setShowColleagueGreeting(false)
     setEventPhase('intro')
     setSelectedChoice(null)
   }, [state.currentChapter])
@@ -34,7 +34,7 @@ export default function ChapterFlow() {
     return (
       <CGViewer
         cgKey={pendingCG.cg}
-        partnerId={partnerId}
+        partnerId={colleagueId}
         onDismiss={() => {
           dispatch({ type: 'ADD_CG_SEEN', payload: pendingCG.cg })
           dispatch({
@@ -84,7 +84,7 @@ export default function ChapterFlow() {
 
   // ===== OPENING =====
   if (state.chapterPhase === 'opening') {
-    if (!showPartnerGreeting) {
+    if (!showColleagueGreeting) {
       return (
         <VNScene
           key={`ch${state.currentChapter}-opening`}
@@ -93,8 +93,8 @@ export default function ChapterFlow() {
           dialogues={chapter.opening.dialogues}
           playerName={state.playerName}
           onComplete={() => {
-            if (chapter.partnerGreeting) {
-              setShowPartnerGreeting(true)
+            if (chapter.colleagueGreeting) {
+              setShowColleagueGreeting(true)
             } else {
               dispatch({ type: 'ADVANCE_CHAPTER_PHASE' })
             }
@@ -102,10 +102,11 @@ export default function ChapterFlow() {
         />
       )
     }
-    const greetingData = chapter.partnerGreeting[genderKey]
+    // colleagueGreeting is now a flat object (no gender key)
+    const greetingData = chapter.colleagueGreeting
     return (
       <VNScene
-        key={`ch${state.currentChapter}-partner-greeting`}
+        key={`ch${state.currentChapter}-colleague-greeting`}
         background={greetingData.background}
         characters={greetingData.characters}
         dialogues={greetingData.dialogues}
@@ -165,8 +166,9 @@ export default function ChapterFlow() {
   if (state.chapterPhase === 'boss') {
     if (!state.bossIntroShown && chapter.bossIntro) {
       const bossDialogues = [...chapter.bossIntro.dialogues]
-      if (chapter.bossIntro.partnerLine) {
-        bossDialogues.push(chapter.bossIntro.partnerLine[genderKey])
+      // colleagueLine is now a flat array (no gender key)
+      if (chapter.bossIntro.colleagueLine) {
+        bossDialogues.push(...chapter.bossIntro.colleagueLine)
       }
       return (
         <VNScene
@@ -200,8 +202,9 @@ export default function ChapterFlow() {
   // ===== CLEAR =====
   if (state.chapterPhase === 'clear') {
     const clearDialogues = [...chapter.clear.dialogues]
-    if (chapter.clear.partnerLine) {
-      clearDialogues.push(chapter.clear.partnerLine[genderKey])
+    // colleagueLine is now a flat array (no gender key)
+    if (chapter.clear.colleagueLine) {
+      clearDialogues.push(...chapter.clear.colleagueLine)
     }
     return (
       <VNScene
@@ -223,9 +226,10 @@ export default function ChapterFlow() {
       return null
     }
 
+    // event.choices[].response is now a flat array (no gender key)
     const eventChoices = event.choices.map((c) => ({
       text: c.text,
-      response: c.response[genderKey],
+      response: c.response,
       affectionChange: c.affectionChange,
       xpChange: c.xpChange,
       hintChange: c.hintChange || 0,

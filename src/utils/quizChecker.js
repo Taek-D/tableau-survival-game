@@ -1,4 +1,4 @@
-import { getQuizAnswers } from '../data/problems/answerLoader'
+import { getQuizAnswers } from '../data/roles/pm/problems/answerLoader'
 
 export function checkQuizAnswer(problem, selectedIds) {
   const correctIds = getQuizAnswers(problem.id)

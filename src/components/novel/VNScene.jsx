@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from 'react'
-import { BACKGROUNDS } from '../../data/characters'
+import { getRoleBackgrounds } from '../../data/roleRegistry'
 import CharacterSprite from './CharacterSprite'
 import DialogueBox from './DialogueBox'
 
@@ -67,6 +67,8 @@ export default function VNScene({
     getLatestSceneValue,
   ])
 
+  // Get backgrounds from roleRegistry (default to pm)
+  const BACKGROUNDS = useMemo(() => getRoleBackgrounds('pm'), [])
   const bgUrl = effectiveBg ? (BACKGROUNDS[effectiveBg] || BACKGROUNDS.office_day) : null
 
   const handleAdvance = useCallback(() => {

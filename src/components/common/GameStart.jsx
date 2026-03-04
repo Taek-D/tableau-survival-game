@@ -2,7 +2,9 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useGameDispatch, hasSavedGame, getSavedGame, beginNewGameSession } from '../../hooks/useGameState'
 import { useAuth } from '../../hooks/useAuth'
-import { BACKGROUNDS } from '../../data/characters'
+import { getRoleBackgrounds } from '../../data/roleRegistry'
+
+const BACKGROUNDS = getRoleBackgrounds('pm')
 
 export default function GameStart() {
   const dispatch = useGameDispatch()

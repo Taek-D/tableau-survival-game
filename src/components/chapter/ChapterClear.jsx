@@ -2,14 +2,14 @@ import { useState, useEffect } from 'react'
 import {
   useGameState, useGameDispatch,
   getLevelTitle, getXPForLevel, getXPForNextLevel,
-  getAffectionStage, getAffectionLabel,
+  getAffectionStage, getTrustLabel,
 } from '../../hooks/useGameState'
-import { getChapter } from '../../data/chapters/index'
-import { getPartnerCharacter, getCharacterName, BACKGROUNDS } from '../../data/characters'
+import { getChapter, getColleagueCharacter, getRoleBackgrounds, getMaxChapter } from '../../data/roleRegistry'
 import { getTitleById } from '../../data/titles'
 
-function LevelUpScene({ level, levelTitle, onDismiss }) {
+function LevelUpScene({ level, levelTitle, role, onDismiss }) {
   const [phase, setPhase] = useState(false)
+  const backgrounds = getRoleBackgrounds(role)
   useEffect(() => {
     const t = setTimeout(() => setPhase(true), 80)
     return () => clearTimeout(t)
@@ -28,7 +28,7 @@ function LevelUpScene({ level, levelTitle, onDismiss }) {
       {/* Promotion background */}
       <div style={{
         position: 'absolute', inset: 0,
-        backgroundImage: `url(${BACKGROUNDS.promotion})`,
+        backgroundImage: backgrounds.presentation ? `url(${backgrounds.presentation})` : 'none',
         backgroundSize: 'cover', backgroundPosition: 'center',
         filter: 'brightness(0.55)',
       }} />
@@ -51,7 +51,7 @@ function LevelUpScene({ level, levelTitle, onDismiss }) {
           margin: '0 0 16px',
           animation: 'pulse 2s ease infinite',
         }}>
-          ★ Level Up ★
+          Level Up
         </p>
         <div style={{
           fontSize: '80px', fontWeight: 900,
@@ -110,7 +110,7 @@ function StarIcon({ filled, delay }) {
       filter: filled ? '0 0 12px rgba(255,210,97,0.5)' : 'none',
       textShadow: filled ? '0 0 20px rgba(255,210,97,0.4)' : 'none',
     }}>
-      {filled ? '★' : '☆'}
+      {filled ? '\u2605' : '\u2606'}
     </span>
   )
 }
@@ -143,25 +143,27 @@ export default function ChapterClear() {
   const [levelUpDismissed, setLevelUpDismissed] = useState(false)
   const [titleToastIdx, setTitleToastIdx] = useState(0)
 
-  const chapter = getChapter(state.currentChapter)
+  const role = state.playerRole || 'pm'
+  const chapter = getChapter(state.currentChapter, role)
   const stars = state.chapterStars[state.currentChapter] || 0
-  const levelTitle = getLevelTitle(state.level)
+  const levelTitle = getLevelTitle(state.level, role)
   const currentLevelXP = getXPForLevel(state.level)
   const nextLevelXP = getXPForNextLevel(state.level)
   const xpProgress = nextLevelXP > currentLevelXP
     ? ((state.xp - currentLevelXP) / (nextLevelXP - currentLevelXP)) * 100
     : 100
 
-  const partnerId = getPartnerCharacter(state.playerGender)
-  const partnerName = getCharacterName(partnerId)
+  const colleague = getColleagueCharacter(role, state.playerGender)
+  const colleagueName = colleague?.name || ''
   const affectionStage = getAffectionStage(state.affection)
-  const affectionLabel = getAffectionLabel(affectionStage)
+  const trustLabel = getTrustLabel(affectionStage)
 
   const accuracy = state.chapterTotal > 0
     ? Math.round((state.chapterCorrect / state.chapterTotal) * 100)
     : 0
 
-  const isLastChapter = state.currentChapter >= 20
+  const maxCh = getMaxChapter(role)
+  const isLastChapter = state.currentChapter >= maxCh
   const canAdvance = stars >= 1
   const didLevelUp = state.level > (state.levelAtChapterStart || 1)
   const pendingTitles = state.pendingTitleUnlock || []
@@ -203,6 +205,7 @@ export default function ChapterClear() {
       <LevelUpScene
         level={state.level}
         levelTitle={levelTitle}
+        role={role}
         onDismiss={() => {
           setShowLevelUp(false)
           setLevelUpDismissed(true)
@@ -212,8 +215,8 @@ export default function ChapterClear() {
   }
 
   // Part color
-  const chapterMeta = { 1: '#5b8df0', 2: '#59a14f', 3: '#b07aa1', 4: '#e8832a' }
-  const accentColor = chapterMeta[chapter?.part] || '#5b8df0'
+  const chapterPartColors = { 1: '#5b8df0', 2: '#59a14f', 3: '#b07aa1', 4: '#e8832a' }
+  const accentColor = chapterPartColors[chapter?.part] || '#5b8df0'
 
   return (
     <div style={{
@@ -362,7 +365,7 @@ export default function ChapterClear() {
             />
             <StatItem
               value={state.affection}
-              label={`${partnerName} ${affectionLabel}`}
+              label={`${colleagueName} ${trustLabel}`}
               color="#f05b8d"
               delay={800}
             />
@@ -434,7 +437,7 @@ export default function ChapterClear() {
                 e.target.style.boxShadow = `0 8px 32px ${accentColor}33`
               }}
             >
-              {isLastChapter ? '결과 보기' : `Chapter ${state.currentChapter + 1}으로 →`}
+              {isLastChapter ? '결과 보기' : `Chapter ${state.currentChapter + 1}으로 \u2192`}
             </button>
           ) : (
             <>

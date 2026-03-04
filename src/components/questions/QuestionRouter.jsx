@@ -1,21 +1,13 @@
-import { quizProblems } from '../../data/problems/quizProblems'
-import { blockDragProblems } from '../../data/problems/blockDragProblems'
-import { calcFieldProblems } from '../../data/problems/calcFieldProblems'
+import { getProblemById } from '../../data/roleRegistry'
+import { useGameState } from '../../hooks/useGameState'
 import QuizQuestion from './QuizQuestion'
 import BlockDragQuestion from './BlockDragQuestion'
 import CalcFieldQuestion from './CalcFieldQuestion'
 
-function getProblemById(id) {
-  return (
-    quizProblems.find((p) => p.id === id) ||
-    blockDragProblems.find((p) => p.id === id) ||
-    calcFieldProblems.find((p) => p.id === id) ||
-    null
-  )
-}
-
 export default function QuestionRouter({ problemId, onComplete }) {
-  const problem = getProblemById(problemId)
+  const state = useGameState()
+  const role = state.playerRole || 'pm'
+  const problem = getProblemById(problemId, role)
 
   if (!problem) {
     return (
@@ -42,5 +34,3 @@ export default function QuestionRouter({ problemId, onComplete }) {
       return null
   }
 }
-
-export { getProblemById }

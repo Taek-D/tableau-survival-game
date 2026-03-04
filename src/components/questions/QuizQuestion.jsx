@@ -1,8 +1,14 @@
 import { useState } from 'react'
 import { useGameState, useGameDispatch } from '../../hooks/useGameState'
 import { checkQuizAnswer } from '../../utils/quizChecker'
-import { EXPRESSION_EMOJI } from '../story/VisualNovel'
-import { getQuizAnswers } from '../../data/problems/answerLoader'
+import { getQuizAnswers } from '../../data/roles/pm/problems/answerLoader'
+
+// 멘토 표정 이모지 (간소화)
+const MENTOR_EMOJI = {
+  default: '\uD83D\uDE10',
+  smile: '\uD83D\uDE0A',
+  serious: '\uD83D\uDE20',
+}
 
 export default function QuizQuestion({ problem, onComplete }) {
   const state = useGameState()
@@ -65,7 +71,7 @@ export default function QuizQuestion({ problem, onComplete }) {
           <div className="flex items-center justify-between px-7 pt-6 pb-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center text-xl border border-accent/20">
-                {EXPRESSION_EMOJI.seoyeon[submitted ? (isCorrect ? 'smile' : 'serious') : 'default']}
+                {MENTOR_EMOJI[submitted ? (isCorrect ? 'smile' : 'serious') : 'default']}
               </div>
               <div>
                 <p className="text-[15px] text-white/90 font-medium leading-snug">

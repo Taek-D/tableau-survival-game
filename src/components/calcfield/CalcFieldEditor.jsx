@@ -8,6 +8,7 @@ import FieldReference from './FieldReference'
 import FunctionReference from './FunctionReference'
 import { EXPRESSION_EMOJI } from '../story/VisualNovel'
 import { getCalcAnswers } from '../../data/problems/answerLoader'
+// Note: CalcField problems are not used in PM role but adapter returns safe defaults
 
 const tableauEditorTheme = createTheme({
   theme: 'dark',

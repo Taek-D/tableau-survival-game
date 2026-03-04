@@ -1,4 +1,5 @@
 import { getBlockAnswers } from '../data/problems/answerLoader'
+// Note: blockDrag problems are not used in PM role, but kept for backward compatibility
 
 // Normalize chartType: "auto" is treated as "bar" for matching
 function normalizeSlot(slotId, value) {

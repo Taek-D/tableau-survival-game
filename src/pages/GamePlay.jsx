@@ -1,6 +1,5 @@
-import { useGameState, getLevelTitle, getXPForLevel, getXPForNextLevel, getAffectionStage } from '../hooks/useGameState'
-import { getChapter } from '../data/chapters/index'
-import { getPartnerCharacter, getCharacterName } from '../data/characters'
+import { useGameState, getLevelTitle, getXPForLevel, getXPForNextLevel, getAffectionStage, getTrustLabel } from '../hooks/useGameState'
+import { getChapter, getColleagueCharacter } from '../data/roleRegistry'
 import CharacterSetup from '../components/common/CharacterSetup'
 import ChapterFlow from '../components/chapter/ChapterFlow'
 import ChapterSelect from '../components/chapter/ChapterSelect'
@@ -45,17 +44,19 @@ export default function GamePlay() {
   }
 
   if (state.phase === 'playing') {
-    const chapter = getChapter(state.currentChapter)
+    const role = state.playerRole || 'pm'
+    const chapter = getChapter(state.currentChapter, role)
     const chapterTitle = chapter?.title || `Chapter ${state.currentChapter}`
-    const levelTitle = getLevelTitle(state.level)
+    const levelTitle = getLevelTitle(state.level, role)
     const currentLevelXP = getXPForLevel(state.level)
     const nextLevelXP = getXPForNextLevel(state.level)
     const xpProgress = nextLevelXP > currentLevelXP
       ? ((state.xp - currentLevelXP) / (nextLevelXP - currentLevelXP)) * 100
       : 100
-    const partnerId = getPartnerCharacter(state.playerGender)
-    const partnerName = getCharacterName(partnerId)
+    const colleague = getColleagueCharacter(role, state.playerGender)
+    const colleagueName = colleague ? colleague.name : ''
     const affectionStage = getAffectionStage(state.affection)
+    const trustLabel = getTrustLabel(affectionStage)
 
     // VN phases render fullscreen (no header)
     const vnPhases = ['opening', 'briefing', 'clear', 'event']
@@ -86,7 +87,7 @@ export default function GamePlay() {
                   Lv.{state.level} {levelTitle}
                 </span>
                 <span className="text-[13px] px-2.5 py-1 bg-pink-500/15 text-pink-400 rounded-md font-medium">
-                  {affectionStage >= 4 ? '\u2665' : '\u2661'} {partnerName} {state.affection}
+                  {trustLabel} {colleagueName} {state.affection}
                 </span>
               </div>
             </div>

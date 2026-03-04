@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useAuth } from '../../hooks/useAuth'
-import { BACKGROUNDS } from '../../data/characters'
+import { getRoleBackgrounds } from '../../data/roleRegistry'
+
+const BACKGROUNDS = getRoleBackgrounds('pm')
 
 export default function LoginPage() {
   const { signIn, signUp, startGuest } = useAuth()

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { getCharacterImage } from '../../data/characters'
+import { getCharacterImage } from '../../data/roleRegistry'
 
 export default function CharacterSprite({
   characterId,
