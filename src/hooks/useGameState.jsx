@@ -1,25 +1,23 @@
 import { createContext, useContext, useReducer, useEffect, useRef, useCallback, useState } from 'react'
 import { checkTitleUnlocks } from '../data/titles'
+import { getLevelTitles, getMaxChapter } from '../data/roleRegistry'
 import { supabase } from '../lib/supabase'
 
 const GameContext = createContext(null)
 const GameDispatchContext = createContext(null)
 
-const STORAGE_KEY = 'tableau-quest-save'
-const FORCE_NEW_GAME_KEY = 'tableau-quest-force-new-game'
+const STORAGE_KEY = 'job-quest-save'
+const FORCE_NEW_GAME_KEY = 'job-quest-force-new-game'
 const SAVE_DEBOUNCE_MS = 2000
 
 const XP_TABLE = [0, 80, 200, 400, 700, 1100, 1600, 2200, 3000, 4000]
-const LEVEL_TITLES = [
-  '수습 분석가', '데이터 루키', '차트 메이커', '분석 전사', '인사이트 헌터',
-  '데이터 마법사', '시니어 분석가', '분석 챔피언', '데이터 레전드', '태블로 마스터',
-]
 
 const initialState = {
   phase: 'title',
   // title → setup → chapter_select → playing → chapter_clear → game_over
   playerName: '',
   playerGender: 'male',
+  playerRole: null,
   currentChapter: 1,
   maxUnlockedChapter: 1,
   chapterPhase: 'opening',
@@ -32,8 +30,8 @@ const initialState = {
   solvedProblems: [],
   correctCount: 0,
   incorrectCount: 0,
-  currentTitle: '수습 분석가',
-  unlockedTitles: ['수습 분석가'],
+  currentTitle: '수습 PM',
+  unlockedTitles: ['수습 PM'],
   pendingTitleUnlock: [],
   chapterStars: {},
   hints: 5,
@@ -69,8 +67,10 @@ export function getXPForNextLevel(level) {
   return XP_TABLE[level]
 }
 
-export function getLevelTitle(level) {
-  return LEVEL_TITLES[Math.min(level - 1, LEVEL_TITLES.length - 1)]
+export function getLevelTitle(level, role = 'pm') {
+  const titles = getLevelTitles(role)
+  if (!titles || titles.length === 0) return ''
+  return titles[Math.min(level - 1, titles.length - 1)]
 }
 
 export function getAffectionStage(affection) {
@@ -81,9 +81,14 @@ export function getAffectionStage(affection) {
   return 1
 }
 
-export function getAffectionLabel(stage) {
-  const labels = ['', '동기', '친한 동기', '신뢰', '썸', '고백']
+export function getTrustLabel(stage) {
+  const labels = ['', '관심', '신뢰', '존경', '멘토', '파트너']
   return labels[stage] || ''
+}
+
+// 하위호환: getAffectionLabel → getTrustLabel 래핑
+export function getAffectionLabel(stage) {
+  return getTrustLabel(stage)
 }
 
 function getProblemIdFromPayload(payload) {
@@ -129,15 +134,29 @@ function buildChapterProgress(state, problemId, isCorrect) {
   }
 }
 
+function _getMaxChapterForState(state) {
+  return getMaxChapter(state.playerRole || 'pm') || 8
+}
+
+function _getLevelTitleForState(level, state) {
+  return getLevelTitle(level, state.playerRole || 'pm')
+}
+
 function gameReducer(state, action) {
   switch (action.type) {
-    case 'START_NEW_GAME':
+    case 'START_NEW_GAME': {
+      const role = action.payload.role || 'pm'
+      const firstTitle = _getLevelTitleForState(1, { playerRole: role })
       return {
         ...initialState,
         phase: 'chapter_select',
         playerName: action.payload.name,
         playerGender: action.payload.gender,
+        playerRole: role,
+        currentTitle: firstTitle,
+        unlockedTitles: [firstTitle],
       }
+    }
 
     case 'LOAD_GAME':
       return { ...initialState, ...action.payload }
@@ -181,7 +200,7 @@ function gameReducer(state, action) {
       if (newConsecutive >= 3 && newConsecutive % 3 === 0) affectionBonus += 3
       const newAffection = Math.min(100, state.affection + affectionBonus)
       const newTitles = [...state.unlockedTitles]
-      const levelTitle = getLevelTitle(newLevel)
+      const levelTitle = _getLevelTitleForState(newLevel, state)
       if (!newTitles.includes(levelTitle)) newTitles.push(levelTitle)
 
       return {
@@ -283,7 +302,8 @@ function gameReducer(state, action) {
           : accuracy >= 0.5
             ? 2
             : 1
-      const nextUnlock = stars >= 1 ? Math.min(20, state.currentChapter + 1) : (state.maxUnlockedChapter || 1)
+      const maxCh = _getMaxChapterForState(state)
+      const nextUnlock = stars >= 1 ? Math.min(maxCh, state.currentChapter + 1) : (state.maxUnlockedChapter || 1)
       const newChapterStars = { ...state.chapterStars, [state.currentChapter]: stars }
       const newHintFreeChapters = !state.hintUsedThisChapter
         ? (state.hintFreeChapters || 0) + 1
@@ -312,13 +332,14 @@ function gameReducer(state, action) {
     }
 
     case 'NEXT_CHAPTER': {
+      const maxCh = _getMaxChapterForState(state)
       const currentStars = state.chapterStars[state.currentChapter] || 0
-      if (state.currentChapter < 20 && currentStars < 1) {
+      if (state.currentChapter < maxCh && currentStars < 1) {
         return state
       }
 
       const nextChapter = state.currentChapter + 1
-      if (nextChapter > 20) {
+      if (nextChapter > maxCh) {
         return { ...state, phase: 'game_complete' }
       }
       return {
@@ -344,7 +365,8 @@ function gameReducer(state, action) {
 
     case 'SELECT_CHAPTER': {
       const chapterId = action.payload
-      if (!Number.isInteger(chapterId) || chapterId < 1 || chapterId > 20) return state
+      const maxCh = _getMaxChapterForState(state)
+      if (!Number.isInteger(chapterId) || chapterId < 1 || chapterId > maxCh) return state
       if (chapterId > (state.maxUnlockedChapter || 1)) return state
       const wasClearedBefore = (state.chapterStars?.[chapterId] || 0) >= 1
       return {
@@ -491,7 +513,6 @@ async function loadFromSupabase(userId) {
 
     if (error) {
       if (error.code === 'PGRST116') return null // no rows found
-      console.error('Supabase load error:', error)
       return null
     }
     if (!data?.save_data) return null
@@ -500,8 +521,7 @@ async function loadFromSupabase(userId) {
       updatedAt: data.updated_at || null,
       userId,
     }
-  } catch (err) {
-    console.error('Supabase load error:', err)
+  } catch {
     return null
   }
 }
@@ -516,10 +536,10 @@ async function saveToSupabase(userId, saveData) {
       )
 
     if (error) {
-      console.error('Supabase save error:', error)
+      // save error ignored silently
     }
-  } catch (err) {
-    console.error('Supabase save error:', err)
+  } catch {
+    // save error ignored silently
   }
 }
 
@@ -586,8 +606,7 @@ export function GameProvider({ children }) {
           initialLoadDone.current = true
           setIsHydrating(false)
         }
-      } catch (err) {
-        console.error('Initial game load error:', err)
+      } catch {
         if (!cancelled) {
           initialLoadDone.current = true
           setIsHydrating(false)
@@ -677,16 +696,12 @@ export async function beginNewGameSession() {
     const userId = session?.user?.id
     if (!userId) return
 
-    const { error } = await supabase
+    await supabase
       .from('game_saves')
       .delete()
       .eq('user_id', userId)
-
-    if (error) {
-      console.error('Supabase delete save error:', error)
-    }
-  } catch (err) {
-    console.error('Supabase delete save error:', err)
+  } catch {
+    // ignore
   }
 }
 
