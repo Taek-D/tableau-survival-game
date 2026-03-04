@@ -3,6 +3,8 @@ import { useGameState } from '../../hooks/useGameState'
 import QuizQuestion from './QuizQuestion'
 import BlockDragQuestion from './BlockDragQuestion'
 import CalcFieldQuestion from './CalcFieldQuestion'
+import TextInputQuestion from './TextInputQuestion'
+import RoadmapQuestion from './RoadmapQuestion'
 
 export default function QuestionRouter({ problemId, onComplete }) {
   const state = useGameState()
@@ -30,6 +32,10 @@ export default function QuestionRouter({ problemId, onComplete }) {
       return <BlockDragQuestion problem={problem} onComplete={onComplete} />
     case 'calc_field':
       return <CalcFieldQuestion problem={problem} onComplete={onComplete} />
+    case 'text_input':
+      return <TextInputQuestion problem={problem} onComplete={onComplete} />
+    case 'roadmap':
+      return <RoadmapQuestion problem={problem} onComplete={onComplete} />
     default:
       return null
   }
