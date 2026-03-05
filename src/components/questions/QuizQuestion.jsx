@@ -120,7 +120,11 @@ export default function QuizQuestion({ problem, onComplete }) {
               let labelColor = 'text-white/75'
 
               if (submitted) {
-                if (attemptCount >= 2 && correctOptionIds.includes(option.id)) {
+                if (isSelected && correctOptionIds.includes(option.id)) {
+                  cardBg = 'bg-emerald-500/[0.08] border-emerald-400/30'
+                  indicatorStyle = 'border-emerald-400 bg-emerald-500 text-white'
+                  labelColor = 'text-emerald-300'
+                } else if (attemptCount >= 2 && correctOptionIds.includes(option.id)) {
                   cardBg = 'bg-emerald-500/[0.08] border-emerald-400/30'
                   indicatorStyle = 'border-emerald-400 bg-emerald-500 text-white'
                   labelColor = 'text-emerald-300'
@@ -149,7 +153,7 @@ export default function QuizQuestion({ problem, onComplete }) {
                   <div className="flex items-center gap-4">
                     <span className={`w-7 h-7 rounded-lg border-2 flex items-center justify-center text-[11px] font-bold shrink-0 transition-all duration-200 ${indicatorStyle}`}>
                       {submitted
-                        ? (attemptCount >= 2 && correctOptionIds.includes(option.id) ? '✓' : isSelected ? '✗' : '')
+                        ? (correctOptionIds.includes(option.id) && (isSelected || attemptCount >= 2) ? '✓' : isSelected ? '✗' : '')
                         : (isSelected ? '●' : String.fromCharCode(65 + idx))}
                     </span>
                     <span className={`text-[15px] leading-relaxed transition-colors ${labelColor}`}>

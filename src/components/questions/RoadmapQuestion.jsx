@@ -13,7 +13,7 @@ import { checkRoadmap } from '../../utils/roadmapChecker'
 import { EXPRESSION_EMOJI } from '../story/VisualNovel'
 import { soundFx, haptics } from '../../utils/feedback'
 
-function DraggableItem({ id, label, disabled }) {
+function DraggableItem({ id, label, disabled, status }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id,
     disabled,
@@ -25,26 +25,33 @@ function DraggableItem({ id, label, disabled }) {
     }
     : undefined
 
+  let statusClass = disabled
+    ? 'bg-white/[0.02] border-white/[0.04] text-white/30 cursor-default'
+    : 'bg-[#0f1a2e] border-white/[0.1] text-white/80 cursor-grab hover:border-white/[0.2] hover:bg-white/[0.06] active:cursor-grabbing'
+
+  if (status === 'correct' || status === 'locked') {
+    statusClass = 'bg-emerald-500/[0.08] border-emerald-400/30 text-emerald-300 cursor-default'
+  } else if (status === 'incorrect') {
+    statusClass = 'bg-red-500/[0.08] border-red-400/30 text-red-300 cursor-default'
+  }
+
   return (
     <div
       ref={setNodeRef}
       style={style}
       {...listeners}
       {...attributes}
-      className={`px-4 py-3 rounded-xl border text-sm font-medium transition-all duration-150 select-none
-        ${isDragging
-          ? 'opacity-30 scale-95'
-          : disabled
-            ? 'bg-white/[0.02] border-white/[0.04] text-white/30 cursor-default'
-            : 'bg-[#0f1a2e] border-white/[0.1] text-white/80 cursor-grab hover:border-white/[0.2] hover:bg-white/[0.06] active:cursor-grabbing'
-        }`}
+      className={`px-4 py-3 rounded-xl border text-sm font-medium transition-all duration-150 select-none flex items-center gap-2
+        ${isDragging ? 'opacity-30 scale-95' : statusClass}`}
     >
+      {(status === 'correct' || status === 'locked') && <span className="text-emerald-400 text-xs">✓</span>}
+      {status === 'incorrect' && <span className="text-red-400 text-xs">✗</span>}
       {label}
     </div>
   )
 }
 
-function DroppableZone({ id, label, children, isHighlight }) {
+function DroppableZone({ id, label, children, isHighlight, isEmpty, submitted }) {
   const { setNodeRef, isOver } = useDroppable({ id })
 
   return (
@@ -66,6 +73,9 @@ function DroppableZone({ id, label, children, isHighlight }) {
         {label}
       </span>
       {children}
+      {isEmpty && submitted && (
+        <span className="text-[11px] text-white/15 italic text-center py-2">— 해당 없음 —</span>
+      )}
     </div>
   )
 }
@@ -79,6 +89,7 @@ export default function RoadmapQuestion({ problem, onComplete }) {
   const [showHint, setShowHint] = useState(false)
   const [attemptCount, setAttemptCount] = useState(0)
   const [activeId, setActiveId] = useState(null)
+  const [lockedItems, setLockedItems] = useState({})
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -92,7 +103,7 @@ export default function RoadmapQuestion({ problem, onComplete }) {
   const totalItems = problem.items.length
   const allPlaced = placedCount === totalItems
 
-  const unplacedItems = problem.items.filter((item) => !placement[item.id])
+  const unplacedItems = problem.items.filter((item) => !placement[item.id] && !lockedItems[item.id])
 
   const getItemsInZone = useCallback(
     (zoneId) => {
@@ -154,7 +165,20 @@ export default function RoadmapQuestion({ problem, onComplete }) {
   }
 
   const handleRetry = () => {
-    setPlacement({})
+    if (result?.itemResults) {
+      const keptPlacement = {}
+      const newLocked = {}
+      for (const [itemId, info] of Object.entries(result.itemResults)) {
+        if (info.correct) {
+          keptPlacement[itemId] = placement[itemId]
+          newLocked[itemId] = true
+        }
+      }
+      setPlacement(keptPlacement)
+      setLockedItems(newLocked)
+    } else {
+      setPlacement({})
+    }
     setSubmitted(false)
     setResult(null)
     setShowHint(true)
@@ -217,10 +241,12 @@ export default function RoadmapQuestion({ problem, onComplete }) {
           </div>
 
           {/* Progress indicator */}
-          <div className="px-7 pt-2 pb-4">
+          <div className="px-7 pt-2 pb-4 flex items-center gap-3">
             <span className="text-[13px] text-white/40">
               배치됨: <span className={allPlaced ? 'text-emerald-400' : 'text-white/60'}>{placedCount}/{totalItems}</span>
             </span>
+            <span className="text-[11px] text-white/25">•</span>
+            <span className="text-[11px] text-white/25">한 칸에 여러 개 가능 · 빈 칸이 있을 수 있음</span>
           </div>
 
           <DndContext
@@ -267,13 +293,18 @@ export default function RoadmapQuestion({ problem, onComplete }) {
                         id={zone.id}
                         label={zone.label}
                         isHighlight={zone.id === 'high_impact_low_effort'}
+                        isEmpty={getItemsInZone(zone.id).length === 0}
+                        submitted={submitted}
                       >
                         {getItemsInZone(zone.id).map((item) => (
                           <DraggableItem
                             key={item.id}
                             id={item.id}
                             label={item.label}
-                            disabled={submitted}
+                            disabled={submitted || lockedItems[item.id]}
+                            status={submitted && result?.itemResults?.[item.id]
+                              ? (result.itemResults[item.id].correct ? 'correct' : 'incorrect')
+                              : lockedItems[item.id] ? 'locked' : null}
                           />
                         ))}
                       </DroppableZone>

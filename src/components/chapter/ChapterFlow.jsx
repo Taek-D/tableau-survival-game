@@ -29,6 +29,26 @@ export default function ChapterFlow() {
     setSelectedChoice(null)
   }, [state.currentChapter])
 
+  // Guard: skip empty problems phase via effect
+  useEffect(() => {
+    if (state.chapterPhase === 'problems') {
+      const problems = chapter?.problems || []
+      if (!problems[state.currentProblemIndex]) {
+        dispatch({ type: 'ADVANCE_CHAPTER_PHASE' })
+      }
+    }
+  }, [state.chapterPhase, state.currentProblemIndex, chapter, dispatch])
+
+  // Guard: skip empty boss/event phase via effect
+  useEffect(() => {
+    if (state.chapterPhase === 'boss' && !chapter?.bossChallenge && state.bossIntroShown) {
+      dispatch({ type: 'ADVANCE_CHAPTER_PHASE' })
+    }
+    if (state.chapterPhase === 'event' && !chapter?.event) {
+      dispatch({ type: 'CHAPTER_COMPLETE' })
+    }
+  }, [state.chapterPhase, state.bossIntroShown, chapter, dispatch])
+
   // CG viewer intercepts chapter completion
   if (pendingCG) {
     return (
@@ -131,16 +151,6 @@ export default function ChapterFlow() {
   }
 
   // ===== PROBLEMS =====
-  // Guard: skip empty problems phase via effect (not during render)
-  useEffect(() => {
-    if (state.chapterPhase === 'problems') {
-      const problems = chapter?.problems || []
-      if (!problems[state.currentProblemIndex]) {
-        dispatch({ type: 'ADVANCE_CHAPTER_PHASE' })
-      }
-    }
-  }, [state.chapterPhase, state.currentProblemIndex, chapter, dispatch])
-
   if (state.chapterPhase === 'problems') {
     const problems = chapter.problems || []
     const problemId = problems[state.currentProblemIndex]
@@ -225,16 +235,6 @@ export default function ChapterFlow() {
       />
     )
   }
-
-  // Guard: skip empty boss/event phase via effect
-  useEffect(() => {
-    if (state.chapterPhase === 'boss' && !chapter?.bossChallenge && state.bossIntroShown) {
-      dispatch({ type: 'ADVANCE_CHAPTER_PHASE' })
-    }
-    if (state.chapterPhase === 'event' && !chapter?.event) {
-      dispatch({ type: 'CHAPTER_COMPLETE' })
-    }
-  }, [state.chapterPhase, state.bossIntroShown, chapter, dispatch])
 
   // ===== EVENT =====
   if (state.chapterPhase === 'event') {

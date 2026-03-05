@@ -97,7 +97,7 @@ export default function BuffSelect({ choices, onSelect, contextBackground = null
   const getRewardBadges = (choice) => {
     const badges = []
     if ((choice.affectionChange || 0) !== 0) {
-      badges.push({ label: '호감', value: choice.affectionChange, tone: 'rose' })
+      badges.push({ label: '신뢰', value: choice.affectionChange, tone: 'rose' })
     }
     if ((choice.xpChange || 0) !== 0) {
       badges.push({ label: '경험치', value: choice.xpChange, tone: 'amber' })
