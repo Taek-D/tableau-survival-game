@@ -48,14 +48,14 @@ export const colleagueMale = {
 }
 
 export const backgrounds = {
-  office_day: '/images/backgrounds/office_day.png',
-  office_night: '/images/backgrounds/office_night.png',
-  meeting_room: '/images/backgrounds/meeting_room.png',
-  cafe: '/images/backgrounds/cafe.png',
-  standup: '/images/backgrounds/standup.png',
-  presentation: '/images/backgrounds/presentation.png',
-  launch_party: '/images/backgrounds/launch_party.png',
-  rooftop: '/images/backgrounds/rooftop.png',
+  office_day: '/images/backgrounds/bg_office_day.jpg',
+  office_night: '/images/backgrounds/bg_office_night.jpg',
+  meeting_room: '/images/backgrounds/bg_meeting_room.jpg',
+  cafe: '/images/backgrounds/bg_cafe.jpg',
+  standup: '/images/backgrounds/bg_office_day.jpg',
+  presentation: '/images/backgrounds/bg_presentation.jpg',
+  launch_party: '/images/backgrounds/bg_restaurant.jpg',
+  rooftop: '/images/backgrounds/bg_rooftop.jpg',
 }
 
 // VN 시스템에서 characterId로 캐릭터 데이터를 찾기 위한 맵

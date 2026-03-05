@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useGameDispatch, finalizeNewGameSession } from '../../hooks/useGameState'
 import { getRoleInfo, getAvailableRoles, getMentorCharacter, getColleagueCharacter } from '../../data/roleRegistry'
+import { soundFx, haptics } from '../../utils/feedback'
 
 const ROLE_CARDS = [
   {
@@ -41,6 +42,8 @@ export default function CharacterSetup() {
   const handleSubmit = (e) => {
     e.preventDefault()
     if (name.trim() && gender && selectedRole) {
+      soundFx.success()
+      haptics.success()
       finalizeNewGameSession()
       dispatch({ type: 'START_NEW_GAME', payload: { name: name.trim(), gender, role: selectedRole } })
     }
@@ -157,7 +160,10 @@ export default function CharacterSetup() {
                       <button
                         key={opt.value}
                         type="button"
-                        onClick={() => setGender(opt.value)}
+                        onClick={() => {
+                          soundFx.click()
+                          setGender(opt.value)
+                        }}
                         style={{
                           padding: '14px 12px',
                           borderRadius: '14px',
@@ -193,7 +199,12 @@ export default function CharacterSetup() {
                       <button
                         key={role.id}
                         type="button"
-                        onClick={() => { if (available) setSelectedRole(role.id) }}
+                        onClick={() => {
+                          if (available) {
+                            soundFx.click()
+                            setSelectedRole(role.id)
+                          }
+                        }}
                         disabled={!available}
                         style={{
                           position: 'relative',
