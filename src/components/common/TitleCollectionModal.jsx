@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useGameState, useGameDispatch } from '../../hooks/useGameState'
 import { TITLES, CATEGORY_META, RARITY_META } from '../../data/titles'
+import StatsRadar from './StatsRadar'
+import { soundFx } from '../../utils/feedback'
 
 const CATEGORIES = ['star', 'skill', 'part', 'affection', 'hidden']
 
@@ -16,6 +18,7 @@ export default function TitleCollectionModal({ onClose }) {
   const totalUnlocked = TITLES.filter((t) => unlocked.includes(t.id)).length
 
   const handleEquip = (title) => {
+    soundFx.click()
     if (!unlocked.includes(title.id)) return
     dispatch({ type: 'EQUIP_TITLE', payload: title.name })
   }
@@ -96,6 +99,11 @@ export default function TitleCollectionModal({ onClose }) {
             </span>
           </div>
 
+          {/* Stats Radar */}
+          <div style={{ marginTop: '16px' }}>
+            <StatsRadar />
+          </div>
+
           {/* Category tabs */}
           <div style={{ display: 'flex', gap: '2px', marginTop: '12px', overflowX: 'auto', paddingBottom: '2px' }}>
             {CATEGORIES.map((cat) => {
@@ -106,7 +114,10 @@ export default function TitleCollectionModal({ onClose }) {
               return (
                 <button
                   key={cat}
-                  onClick={() => setActiveCategory(cat)}
+                  onClick={() => {
+                    soundFx.click()
+                    setActiveCategory(cat)
+                  }}
                   style={{
                     padding: '6px 12px', borderRadius: '8px',
                     border: active ? `1px solid ${meta.color}30` : '1px solid transparent',

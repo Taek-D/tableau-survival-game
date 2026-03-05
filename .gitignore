@@ -29,6 +29,10 @@ dist-ssr
 .vercel
 .env*.local
 
+# Tool/CI artifacts
+.omc/
+test-results/
+
 # Internal docs
 GAME_REDESIGN.md
 HANDOFF.md

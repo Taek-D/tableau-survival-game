@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useGameDispatch, hasSavedGame, getSavedGame, beginNewGameSession } from '../../hooks/useGameState'
 import { useAuth } from '../../hooks/useAuth'
 import { getRoleBackgrounds } from '../../data/roleRegistry'
+import { soundFx } from '../../utils/feedback'
 
 const BACKGROUNDS = getRoleBackgrounds('pm')
 
@@ -16,6 +17,7 @@ export default function GameStart() {
   const [isStartingNewGame, setIsStartingNewGame] = useState(false)
 
   const handleNewGame = async () => {
+    soundFx.click()
     if (isStartingNewGame) return
     setIsStartingNewGame(true)
     await beginNewGameSession()
@@ -24,6 +26,7 @@ export default function GameStart() {
   }
 
   const handleContinue = () => {
+    soundFx.click()
     const saved = getSavedGame()
     if (saved) {
       dispatch({ type: 'LOAD_GAME', payload: saved })

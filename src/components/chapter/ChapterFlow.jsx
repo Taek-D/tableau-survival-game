@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useGameState, useGameDispatch } from '../../hooks/useGameState'
 import { getChapter, getColleagueCharacter } from '../../data/roleRegistry'
 import VNScene from '../novel/VNScene'
@@ -28,6 +28,8 @@ export default function ChapterFlow() {
     setEventPhase('intro')
     setSelectedChoice(null)
   }, [state.currentChapter])
+
+  const handleTransitionComplete = useCallback(() => setShowTransition(false), [])
 
   // CG viewer intercepts chapter completion
   if (pendingCG) {
@@ -76,7 +78,7 @@ export default function ChapterFlow() {
         day={state.currentChapter}
         title={chapter.title}
         subtitle={chapter.subtitle}
-        onComplete={() => setShowTransition(false)}
+        onComplete={handleTransitionComplete}
         isChapter
       />
     )

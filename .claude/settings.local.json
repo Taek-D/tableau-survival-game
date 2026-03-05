@@ -1,12 +1,23 @@
 {
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -c \"import json,sys; d=json.load(sys.stdin); p=d.get('tool_input',{}).get('file_path',''); sys.exit(2 if any(k in p for k in ['.env', '_key.js', 'secret', 'credentials']) else 0)\""
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "Write|Edit",
         "hooks": [
           {
             "type": "command",
-            "command": "npx eslint --fix $CLAUDE_FILE_PATH 2>/dev/null || true"
+            "command": "FILE=$(cat | python3 -c \"import json,sys; print(json.load(sys.stdin).get('tool_input',{}).get('file_path',''))\") && [ -n \"$FILE\" ] && npx eslint --fix \"$FILE\" 2>/dev/null || true"
           }
         ]
       }
@@ -14,17 +25,24 @@
   },
   "permissions": {
     "allow": [
-      "Bash(npm run dev)",
-      "Bash(npm run build)",
-      "Bash(npm run lint)",
-      "Bash(npm run lint:*)",
-      "Bash(npm run preview)",
-      "Bash(npx eslint *)",
-      "Bash(npx vite *)"
+      "Bash(npm *)",
+      "Bash(npx *)",
+      "Bash(git status*)",
+      "Bash(git log*)",
+      "Bash(git diff*)",
+      "Bash(git branch*)",
+      "Bash(git checkout*)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(ls *)",
+      "Bash(cat *)",
+      "Bash(mkdir *)"
     ],
     "deny": [
       "Bash(rm -rf *)",
-      "Bash(npm publish *)"
+      "Bash(npm publish *)",
+      "Bash(git push --force*)",
+      "Bash(git reset --hard*)"
     ]
   }
 }
