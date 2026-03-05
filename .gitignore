@@ -35,3 +35,9 @@ HANDOFF.md
 IMAGE_PROMPTS.md
 PROBLEMS_OVERVIEW.md
 notionimg/
+
+# OMC plugin state
+.omc/
+
+# Test results
+test-results/
