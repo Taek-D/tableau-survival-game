@@ -20,7 +20,7 @@ export const mentorCharacter = {
 export const colleagueFemale = {
   id: 'colleague_f',
   name: '이서아',
-  role: '동기 (디자이너)',
+  role: '디자이너',
   color: '#b07aa1',
   nameColor: '#b07aa1',
   expressions: {
@@ -35,7 +35,7 @@ export const colleagueFemale = {
 export const colleagueMale = {
   id: 'colleague_m',
   name: '박건우',
-  role: '동기 (개발자)',
+  role: '개발자',
   color: '#59a14f',
   nameColor: '#59a14f',
   expressions: {

@@ -388,14 +388,14 @@ body {
   position: absolute;
   bottom: 0;
   height: 80vh;
-  transition: all 0.3s ease;
+  transition: left 0.5s ease, opacity 0.3s ease, filter 0.3s ease;
   z-index: 2;
 }
 .character-sprite.left {
   left: 5%;
 }
 .character-sprite.right {
-  right: 5%;
+  left: 75%;
 }
 .character-sprite.center {
   left: 50%;
@@ -412,8 +412,8 @@ body {
 }
 
 @keyframes sprite-enter {
-  from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 .sprite-enter {
   animation: sprite-enter 0.4s ease-out;
